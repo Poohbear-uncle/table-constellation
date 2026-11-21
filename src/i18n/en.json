@@ -1,0 +1,51 @@
+{
+  "appTitle": "1:1 Table Constellation",
+  "appSubtitle": "Social Constructionism & Systemic Constellation Web Canvas",
+  "roomStatus": {
+    "waiting": "Waiting for peer...",
+    "connecting": "Connecting...",
+    "connected": "Connected in real-time",
+    "disconnected": "Disconnected",
+    "reconnecting": "Reconnecting..."
+  },
+  "roles": {
+    "coach": "Coach (Host)",
+    "client": "Client (Guest)"
+  },
+  "buttons": {
+    "copyLink": "Copy Invite Link",
+    "copied": "Copied!",
+    "pause": "Pause",
+    "resume": "Resume",
+    "undo": "Undo",
+    "redo": "Redo",
+    "reset": "Reset",
+    "addFigure": "Add Figure",
+    "saveSnapshot": "Save Snapshot",
+    "exportPng": "Export PNG",
+    "exportReport": "Report (MD)",
+    "exportJson": "Export JSON",
+    "finishSession": "Complete Session",
+    "emergencyHelp": "Crisis Support",
+    "apply": "Apply",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "close": "Close"
+  },
+  "safety": {
+    "consentTitle": "Table Constellation Agreement & Safety Notice",
+    "consentNotice1": "This tool is a coaching visualization instrument designed to facilitate systemic insight, not a substitute for clinical psychotherapy or medical treatment.",
+    "consentNotice2": "You have the full right to pause or stop the session at any moment if you feel overwhelmed.",
+    "consentNotice3": "All arrangements and notes are shared strictly peer-to-peer (P2P) between your browsers and are never stored on any server.",
+    "consentCrisis": "If you are experiencing acute distress or suicidal ideation, please pause and reach out immediately to emergency helpline services.",
+    "consentAgree": "I have read and agree to the above terms."
+  },
+  "deroling": {
+    "title": "De-roling & Grounding Ceremony",
+    "intro": "A crucial concluding ritual to release emotional projections from the figures and return safely to present reality.",
+    "step1": "1. Click each figure on the table, acknowledging 'This was only a symbolic tool, not the actual person', returning it to the waiting zone.",
+    "step2": "2. Take three deep, grounding breaths and feel the solid ground beneath your feet.",
+    "step3": "3. Name three physical objects you see in your current room.",
+    "step4": "4. Formulate the smallest concrete commitment or action step for tomorrow."
+  }
+}

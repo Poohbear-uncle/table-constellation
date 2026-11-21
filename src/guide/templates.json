@@ -1,0 +1,83 @@
+[
+  {
+    "id": "free",
+    "title": "자유 배치 (기본형)",
+    "description": "고객이 원하는 요소를 자유롭게 선정하여 테이블에 배치하는 기본 모드입니다.",
+    "elements": [
+      { "label": "나(Me)", "shape": "person", "color": "#3B82F6", "size": "M", "x": 500, "y": 650, "angle": 0, "zone": "table" }
+    ]
+  },
+  {
+    "id": "goal",
+    "title": "목표·자원·장애물",
+    "description": "달성하고자 하는 목표와 나 사이의 거리, 가로막는 장애물, 힘을 주는 자원을 입체적으로 조망합니다.",
+    "elements": [
+      { "label": "나(Me)", "shape": "person", "color": "#3B82F6", "size": "M", "x": 500, "y": 700, "angle": 0, "zone": "table" },
+      { "label": "목표", "shape": "star", "color": "#F59E0B", "size": "L", "x": 500, "y": 250, "angle": 180, "zone": "table" },
+      { "label": "장애물", "shape": "square", "color": "#EF4444", "size": "M", "x": 500, "y": 480, "angle": 0, "zone": "table" },
+      { "label": "내면의 자원", "shape": "diamond", "color": "#10B981", "size": "M", "x": 350, "y": 680, "angle": 45, "zone": "table" },
+      { "label": "외부 지지자", "shape": "circle", "color": "#8B5CF6", "size": "M", "x": 650, "y": 680, "angle": 315, "zone": "table" }
+    ]
+  },
+  {
+    "id": "relation",
+    "title": "대인 관계 갈등",
+    "description": "나와 상대방, 그리고 두 사람 사이에 흐르는 '관계 자체' 및 숨겨진 기대를 분리하여 조망합니다.",
+    "elements": [
+      { "label": "나(Me)", "shape": "person", "color": "#3B82F6", "size": "M", "x": 380, "y": 500, "angle": 90, "zone": "table" },
+      { "label": "상대방", "shape": "person", "color": "#EC4899", "size": "M", "x": 620, "y": 500, "angle": 270, "zone": "table" },
+      { "label": "관계의 장", "shape": "circle", "color": "#6366F1", "size": "S", "x": 500, "y": 500, "angle": 0, "zone": "table" },
+      { "label": "서로의 기대", "shape": "diamond", "color": "#F59E0B", "size": "S", "x": 500, "y": 380, "angle": 180, "zone": "table" },
+      { "label": "제3의 변수", "shape": "square", "color": "#64748B", "size": "S", "x": 500, "y": 650, "angle": 0, "zone": "waiting" }
+    ]
+  },
+  {
+    "id": "team",
+    "title": "팀·조직 역동",
+    "description": "조직의 목적을 중심에 두고 리더, 팀원, 고객, 외부 압력의 위치와 시선을 탐색합니다.",
+    "elements": [
+      { "label": "조직의 핵심 목적", "shape": "star", "color": "#F59E0B", "size": "L", "x": 500, "y": 450, "angle": 0, "zone": "table" },
+      { "label": "나(역할)", "shape": "person", "color": "#3B82F6", "size": "M", "x": 420, "y": 620, "angle": 330, "zone": "table" },
+      { "label": "팀 리더", "shape": "person", "color": "#475569", "size": "M", "x": 500, "y": 300, "angle": 180, "zone": "table" },
+      { "label": "동료 팀원들", "shape": "circle", "color": "#10B981", "size": "M", "x": 580, "y": 620, "angle": 30, "zone": "table" },
+      { "label": "고객(수혜자)", "shape": "circle", "color": "#06B6D4", "size": "M", "x": 700, "y": 450, "angle": 270, "zone": "table" },
+      { "label": "외부 환경/압박", "shape": "square", "color": "#EF4444", "size": "M", "x": 300, "y": 450, "angle": 90, "zone": "waiting" }
+    ]
+  },
+  {
+    "id": "decision",
+    "title": "의사결정 딜레마",
+    "description": "선택지 A와 선택지 B 앞에 서 보며, 각각의 자리에서 느껴지는 신체 감각과 숨은 가치를 비교합니다.",
+    "elements": [
+      { "label": "나(결정자)", "shape": "person", "color": "#3B82F6", "size": "M", "x": 500, "y": 650, "angle": 0, "zone": "table" },
+      { "label": "선택지 A", "shape": "square", "color": "#3B82F6", "size": "M", "x": 350, "y": 400, "angle": 150, "zone": "table" },
+      { "label": "선택지 B", "shape": "square", "color": "#10B981", "size": "M", "x": 650, "y": 400, "angle": 210, "zone": "table" },
+      { "label": "숨은 핵심 가치", "shape": "diamond", "color": "#F59E0B", "size": "S", "x": 500, "y": 320, "angle": 180, "zone": "table" },
+      { "label": "미래의 나 (3년 뒤)", "shape": "observer", "color": "#8B5CF6", "size": "M", "x": 500, "y": 180, "angle": 180, "zone": "waiting" }
+    ]
+  },
+  {
+    "id": "inner",
+    "title": "내면의 부분 대화 (Voice Dialogue)",
+    "description": "내 안에서 상충하는 목소리들(예: 완벽주의, 피로, 모험심, 두려움)을 외재화하여 대화시킵니다.",
+    "elements": [
+      { "label": "관찰하는 나(Self)", "shape": "observer", "color": "#3B82F6", "size": "L", "x": 500, "y": 650, "angle": 0, "zone": "table" },
+      { "label": "채찍질하는 목소리", "shape": "square", "color": "#EF4444", "size": "M", "x": 400, "y": 450, "angle": 120, "zone": "table" },
+      { "label": "쉬고 싶은 내면 아이", "shape": "circle", "color": "#38BDF8", "size": "S", "x": 600, "y": 450, "angle": 240, "zone": "table" },
+      { "label": "진짜 깊은 욕구", "shape": "diamond", "color": "#10B981", "size": "M", "x": 500, "y": 350, "angle": 180, "zone": "table" }
+    ]
+  },
+  {
+    "id": "tetralemma",
+    "title": "테트라레마 (SySt 구조 세우기)",
+    "description": "이분법적 교착 상태를 넘어서는 고대 인도 논리학 기반의 5단계 구조 세우기 모델입니다.",
+    "elements": [
+      { "label": "나(탐색자)", "shape": "person", "color": "#3B82F6", "size": "M", "x": 500, "y": 720, "angle": 0, "zone": "table" },
+      { "label": "① 이것(선택 A)", "shape": "square", "color": "#2563EB", "size": "M", "x": 320, "y": 500, "angle": 45, "zone": "table" },
+      { "label": "② 저것(선택 B)", "shape": "square", "color": "#059669", "size": "M", "x": 680, "y": 500, "angle": 315, "zone": "table" },
+      { "label": "③ 둘 다(통합)", "shape": "diamond", "color": "#D97706", "size": "M", "x": 500, "y": 420, "angle": 180, "zone": "table" },
+      { "label": "④ 둘 다 아님(제3의 길)", "shape": "circle", "color": "#7C3AED", "size": "M", "x": 500, "y": 280, "angle": 180, "zone": "table" },
+      { "label": "⑤ 모두를 넘어서는 것", "shape": "star", "color": "#EC4899", "size": "L", "x": 500, "y": 150, "angle": 180, "zone": "waiting" }
+    ]
+  }
+]

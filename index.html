@@ -1,0 +1,2904 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>1:1 테이블 컨스텔레이션 - 사회구성주의 & 체계적 코칭 캔버스</title>
+
+  <!-- Pretendard Korean Font -->
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'Roboto', 'sans-serif'],
+          },
+          colors: {
+            slate: {
+              850: '#151F32',
+              900: '#0F172A',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- PeerJS CDN for WebRTC P2P Realtime Sync -->
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+
+  <style>
+/* Custom styles for 1:1 Table Constellation */
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spinSlow 12s linear infinite;
+  transform-origin: center;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(241, 245, 249, 0.6);
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+/* Smooth Canvas Pan Transitions */
+#canvasTransformGroup {
+  transform-origin: 0 0;
+}
+
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans h-screen w-screen overflow-hidden select-none">
+
+  <!-- Main Root Container -->
+  <div id="app" class="h-full w-full"></div>
+
+  <!-- Complete Standalone Logic (Zero-CORS, file:/// compatible) -->
+  <script>
+    // Embedded Data Models
+    const DATA_STAGES = [{"stage": 0, "name": "동의·안전", "time": "5분", "desc": "방법 설명, 한계 고지, 비밀 보장 및 언제든 멈출 수 있는 중단 권리 안내", "coachAction": "안전 화면을 확인하고, 고객의 심리적 안정감과 자발적 참여 의사를 확인합니다.", "keyQuestion": "오늘 작업은 언제든 멈추거나 건너뛸 수 있습니다. 편안한 마음으로 시작해 보시겠습니까?"}, {"stage": 1, "name": "주제 정리", "time": "10분", "desc": "고객이 다루고자 하는 핵심 질문 또는 탐색 주제를 간결한 한 문장으로 정리", "coachAction": "긴 사연 대신 현재 다루고 싶은 주제의 핵심 구조를 한 문장으로 명료화합니다.", "keyQuestion": "오늘 이 작업이 끝났을 때 무엇이 달라져 있으면 좋겠습니까?"}, {"stage": 2, "name": "요소 선정", "time": "10분", "desc": "상황에 관련된 3~7개의 핵심 요소(사람, 역할, 감정, 가치, 장애물, 자원 등) 결정", "coachAction": "고객과 함께 테이블에 올릴 핵심 요소들을 선정하고 피규어를 선택하게 합니다.", "keyQuestion": "이 상황에 영향을 미치는 사람, 힘, 가치, 혹은 내면의 감정은 무엇입니까?"}, {"stage": 3, "name": "첫 배치", "time": "10분", "desc": "고객이 머리로 계산하지 않고 손이 이끄는 대로 직관적으로 피규어를 테이블에 배치", "coachAction": "코치는 어떤 해석이나 조언도 하지 않고, 고객의 직관적 배치를 온전히 지켜봅니다.", "keyQuestion": "생각으로 판단하지 마시고, 손이 닿는 느낌대로 직관적으로 놓아 보세요."}, {"stage": 4, "name": "현상 관찰", "time": "10분", "desc": "배치된 그림을 한 걸음 물러나 공간적 현상(거리, 시선, 군집, 빈자리, 높낮이)으로 관찰", "coachAction": "단정하거나 해석하지 않고, 눈앞에 보이는 공간적 사실을 기술하도록 질문합니다.", "keyQuestion": "이 그림에서 가장 먼저 눈에 띄는 것은 무엇입니까? 거리나 시선은 어떻게 느껴지나요?"}, {"stage": 5, "name": "관점 이동", "time": "15분", "desc": "고객이 각 피규어의 자리에 서서 다른 요소들을 바라보는 신체 감각과 내면의 소리 탐색", "coachAction": "고객이 특정 피규어의 위치에서 세상을 바라보게 돕고, 관점 메모와 감각 태그를 기록합니다.", "keyQuestion": "이 피규어의 자리에 서면 다른 피규어들은 어떻게 보입니까? 몸에서는 무엇이 느껴지나요?"}, {"stage": 6, "name": "개입·탐색", "time": "20분", "desc": "작은 위치 이동, 시선 전환, 새로운 자원 요소 추가, 해결 문장 시도를 통한 변화 체감", "coachAction": "조금 더 편안해질 수 있는 작은 변화를 제안하고, 변화 후의 공간 감각을 확인합니다.", "keyQuestion": "어떤 움직임이 이 그림을 아주 조금이라도 더 편안하게 만들 수 있을까요?"}, {"stage": 7, "name": "해결 이미지", "time": "5분", "desc": "모든 요소가 '자신의 온전한 자리에 있다'고 느껴지는 최종 배치를 확인하고 스냅샷 저장", "coachAction": "완성된 최종 이미지를 마음에 새기게 하고, 해결 스냅샷으로 영구 고정합니다.", "keyQuestion": "지금 이 배치를 보았을 때, 내 안에서 일어나는 가장 큰 변화나 통찰은 무엇입니까?"}, {"stage": 8, "name": "마무리", "time": "5분", "desc": "역할 해제(De-roling) 의식, 신체 감각 그라운딩, 일상에서의 실천 과제(Commitment) 정립", "coachAction": "피규어를 도구로 되돌리는 의식을 진행하고, 깊은 호흡과 함께 현실로 복귀합니다.", "keyQuestion": "이 그림에서 얻은 통찰을 가지고, 내일 일상에서 실천할 수 있는 가장 작은 행동은 무엇인가요?"}];
+    const DATA_QUESTIONS = {"questionsByAspect": {"distance": ["가장 가깝게 붙어 있는 요소와 가장 멀리 떨어진 요소는 무엇입니까?", "그 둘 사이의 거리는 편안하게 느껴지나요, 아니면 긴장감이 있나요?", "거리를 반 보만 좁히거나 넓힌다면 어떤 느낌의 차이가 생깁니까?"], "gaze": ["누가 누구를 정면으로 바라보고 있습니까?", "아무도 바라보지 않고 허공을 응시하거나 등을 돌린 피규어는 누구입니까?", "시선이 마주칠 때와 비껴갈 때, 몸의 감각은 어떻게 달라지나요?"], "clustering": ["자연스럽게 한 무리를 이루고 있는 피규어들은 누구입니까?", "혼자 외따로 떨어져 있는 피규어가 있다면, 그 자리는 어떤 의미일까요?", "이 무리 속으로 다가가고 싶습니까, 아니면 거리를 두고 싶습니까?"], "emptySpace": ["이 테이블 위에서 분명히 자리가 있어야 할 것 같은데 빠져 있는 것은 무엇입니까?", "잊히거나 배제된 사람, 감정, 혹은 덮어둔 기억이 있나요?", "비어 있는 공간에 시선이 머무는 이유는 무엇일까요?"], "sizeAndCenter": ["가장 중심에 자리 잡고 있는 피규어는 무엇입니까?", "가장 커 보이거나 무겁게 느껴지는 피규어의 무게는 실제 현실과 일치하나요?", "경계선 바깥으로 밀려나 있는 피규어가 있습니까?"]}, "lensesOfOrder": {"belonging": ["혹시 이 그림에서 '자신의 자리가 없다'고 느끼거나 소외된 존재가 있습니까?", "배제되거나 인정받지 못한 감정이나 사람이 있다면 누구일까요?"], "balance": ["주고받음(Give & Take)의 균형이 어느 한쪽으로 지나치게 기울어져 있지는 않나요?", "누군가가 자신의 몫보다 더 많은 무게를 혼자 감당하고 있습니까?"], "order": ["누가 먼저 시작했고, 누가 나중에 합류했습니까? 먼저 온 존재의 자리가 존중받고 있나요?", "혹시 아랫사람이 윗사람의 짐을 대신 짊어지려(부모화 등) 하고 있지는 않습니까?"]}, "interventions": [{"id": "move_small", "title": "미세 이동", "guide": "피규어를 아주 조금(1~2cm)만 이동시켜 보게 하고, 그 미세한 변화가 주는 체감 차이를 묻습니다."}, {"id": "change_gaze", "title": "시선 돌리기", "guide": "피규어를 회전시켜 서로 마주 보게 하거나 같은 곳을 바라보게 한 뒤, 몸에서 일어나는 반응을 확인합니다."}, {"id": "add_resource", "title": "자원·지지자 추가", "guide": "나에게 힘과 지지를 주는 자원(멘토, 자연, 내면의 용기, 소중한 기억)을 피규어로 추가해 등 뒤에 배치합니다."}, {"id": "remove_burden", "title": "짐·부담 보류 존 이동", "guide": "지금 당장 감당할 수 없거나 내 몫이 아닌 무거운 요소를 테이블 밖 '보류 존'으로 내려놓고 가벼움을 확인합니다."}, {"id": "perspective_shift", "title": "관점 이동 메모", "guide": "해당 피규어의 자리로 옮겨 앉은 상상을 하며, '이 자리에서 바라본 세상과 필요한 것'을 메모합니다."}, {"id": "sentence_trial", "title": "해결 문장 시도", "guide": "피규어를 향해 담백하고 솔직한 문장을 소리 내어 말해 보게 합니다. 고객의 입에 맞게 수정합니다."}, {"id": "meta_observer", "title": "메타 관찰자 배치", "guide": "전체를 위에서 내려다보는 '관찰자(나)' 피규어를 테이블 가장자리에 세워 객관적인 조망을 유도합니다."}], "sampleSentences": ["나는 당신을 온전히 봅니다.", "이것은 내 몫이고, 저것은 당신의 몫입니다.", "이제 나는 내 온전한 자리에 섭니다.", "당신이 준 것을 소중히 받고, 남은 삶을 충만하게 살겠습니다.", "그동안 무거운 짐을 대신 져 주어서 고마웠습니다. 이제 내려놓으셔도 됩니다."]};
+    const DATA_TEMPLATES = [{"id": "free", "title": "자유 배치 (기본형)", "description": "고객이 원하는 요소를 자유롭게 선정하여 테이블에 배치하는 기본 모드입니다.", "elements": [{"label": "나(Me)", "shape": "person", "color": "#3B82F6", "size": "M", "x": 500, "y": 650, "angle": 0, "zone": "table"}]}, {"id": "goal", "title": "목표·자원·장애물", "description": "달성하고자 하는 목표와 나 사이의 거리, 가로막는 장애물, 힘을 주는 자원을 입체적으로 조망합니다.", "elements": [{"label": "나(Me)", "shape": "person", "color": "#3B82F6", "size": "M", "x": 500, "y": 700, "angle": 0, "zone": "table"}, {"label": "목표", "shape": "star", "color": "#F59E0B", "size": "L", "x": 500, "y": 250, "angle": 180, "zone": "table"}, {"label": "장애물", "shape": "square", "color": "#EF4444", "size": "M", "x": 500, "y": 480, "angle": 0, "zone": "table"}, {"label": "내면의 자원", "shape": "diamond", "color": "#10B981", "size": "M", "x": 350, "y": 680, "angle": 45, "zone": "table"}, {"label": "외부 지지자", "shape": "circle", "color": "#8B5CF6", "size": "M", "x": 650, "y": 680, "angle": 315, "zone": "table"}]}, {"id": "relation", "title": "대인 관계 갈등", "description": "나와 상대방, 그리고 두 사람 사이에 흐르는 '관계 자체' 및 숨겨진 기대를 분리하여 조망합니다.", "elements": [{"label": "나(Me)", "shape": "person", "color": "#3B82F6", "size": "M", "x": 380, "y": 500, "angle": 90, "zone": "table"}, {"label": "상대방", "shape": "person", "color": "#EC4899", "size": "M", "x": 620, "y": 500, "angle": 270, "zone": "table"}, {"label": "관계의 장", "shape": "circle", "color": "#6366F1", "size": "S", "x": 500, "y": 500, "angle": 0, "zone": "table"}, {"label": "서로의 기대", "shape": "diamond", "color": "#F59E0B", "size": "S", "x": 500, "y": 380, "angle": 180, "zone": "table"}, {"label": "제3의 변수", "shape": "square", "color": "#64748B", "size": "S", "x": 500, "y": 650, "angle": 0, "zone": "waiting"}]}, {"id": "team", "title": "팀·조직 역동", "description": "조직의 목적을 중심에 두고 리더, 팀원, 고객, 외부 압력의 위치와 시선을 탐색합니다.", "elements": [{"label": "조직의 핵심 목적", "shape": "star", "color": "#F59E0B", "size": "L", "x": 500, "y": 450, "angle": 0, "zone": "table"}, {"label": "나(역할)", "shape": "person", "color": "#3B82F6", "size": "M", "x": 420, "y": 620, "angle": 330, "zone": "table"}, {"label": "팀 리더", "shape": "person", "color": "#475569", "size": "M", "x": 500, "y": 300, "angle": 180, "zone": "table"}, {"label": "동료 팀원들", "shape": "circle", "color": "#10B981", "size": "M", "x": 580, "y": 620, "angle": 30, "zone": "table"}, {"label": "고객(수혜자)", "shape": "circle", "color": "#06B6D4", "size": "M", "x": 700, "y": 450, "angle": 270, "zone": "table"}, {"label": "외부 환경/압박", "shape": "square", "color": "#EF4444", "size": "M", "x": 300, "y": 450, "angle": 90, "zone": "waiting"}]}, {"id": "decision", "title": "의사결정 딜레마", "description": "선택지 A와 선택지 B 앞에 서 보며, 각각의 자리에서 느껴지는 신체 감각과 숨은 가치를 비교합니다.", "elements": [{"label": "나(결정자)", "shape": "person", "color": "#3B82F6", "size": "M", "x": 500, "y": 650, "angle": 0, "zone": "table"}, {"label": "선택지 A", "shape": "square", "color": "#3B82F6", "size": "M", "x": 350, "y": 400, "angle": 150, "zone": "table"}, {"label": "선택지 B", "shape": "square", "color": "#10B981", "size": "M", "x": 650, "y": 400, "angle": 210, "zone": "table"}, {"label": "숨은 핵심 가치", "shape": "diamond", "color": "#F59E0B", "size": "S", "x": 500, "y": 320, "angle": 180, "zone": "table"}, {"label": "미래의 나 (3년 뒤)", "shape": "observer", "color": "#8B5CF6", "size": "M", "x": 500, "y": 180, "angle": 180, "zone": "waiting"}]}, {"id": "inner", "title": "내면의 부분 대화 (Voice Dialogue)", "description": "내 안에서 상충하는 목소리들(예: 완벽주의, 피로, 모험심, 두려움)을 외재화하여 대화시킵니다.", "elements": [{"label": "관찰하는 나(Self)", "shape": "observer", "color": "#3B82F6", "size": "L", "x": 500, "y": 650, "angle": 0, "zone": "table"}, {"label": "채찍질하는 목소리", "shape": "square", "color": "#EF4444", "size": "M", "x": 400, "y": 450, "angle": 120, "zone": "table"}, {"label": "쉬고 싶은 내면 아이", "shape": "circle", "color": "#38BDF8", "size": "S", "x": 600, "y": 450, "angle": 240, "zone": "table"}, {"label": "진짜 깊은 욕구", "shape": "diamond", "color": "#10B981", "size": "M", "x": 500, "y": 350, "angle": 180, "zone": "table"}]}, {"id": "tetralemma", "title": "테트라레마 (SySt 구조 세우기)", "description": "이분법적 교착 상태를 넘어서는 고대 인도 논리학 기반의 5단계 구조 세우기 모델입니다.", "elements": [{"label": "나(탐색자)", "shape": "person", "color": "#3B82F6", "size": "M", "x": 500, "y": 720, "angle": 0, "zone": "table"}, {"label": "① 이것(선택 A)", "shape": "square", "color": "#2563EB", "size": "M", "x": 320, "y": 500, "angle": 45, "zone": "table"}, {"label": "② 저것(선택 B)", "shape": "square", "color": "#059669", "size": "M", "x": 680, "y": 500, "angle": 315, "zone": "table"}, {"label": "③ 둘 다(통합)", "shape": "diamond", "color": "#D97706", "size": "M", "x": 500, "y": 420, "angle": 180, "zone": "table"}, {"label": "④ 둘 다 아님(제3의 길)", "shape": "circle", "color": "#7C3AED", "size": "M", "x": 500, "y": 280, "angle": 180, "zone": "table"}, {"label": "⑤ 모두를 넘어서는 것", "shape": "star", "color": "#EC4899", "size": "L", "x": 500, "y": 150, "angle": 180, "zone": "waiting"}]}];
+
+    
+class I18n {
+  constructor(defaultLang = 'ko') {
+    this.currentLang = defaultLang;
+    this.locales = {
+      ko: {"appTitle": "1:1 테이블 컨스텔레이션", "appSubtitle": "Social Constructionism & Systemic Constellation Web Canvas", "roomStatus": {"waiting": "룸 대기 중...", "connecting": "연결 중...", "connected": "상대방과 실시간 연결됨", "disconnected": "연결 끊김", "reconnecting": "재연결 시도 중..."}, "roles": {"coach": "코치(호스트)", "client": "고객(게스트)"}, "buttons": {"copyLink": "초대 링크 복사", "copied": "복사 완료!", "pause": "일시정지", "resume": "작업 재개", "undo": "실행 취소", "redo": "다시 실행", "reset": "초기화", "addFigure": "피규어 추가", "saveSnapshot": "스냅샷 저장", "exportPng": "PNG 이미지", "exportReport": "리포트 저장(MD)", "exportJson": "JSON 백업", "finishSession": "세션 마무리", "emergencyHelp": "위기 지원 안내", "apply": "적용", "cancel": "취소", "confirm": "확인", "close": "닫기"}, "safety": {"consentTitle": "1:1 테이블 컨스텔레이션 참여 동의 및 안내", "consentNotice1": "본 시스템은 고객 내면의 관계 구조와 관점을 시각화하여 통찰을 돕는 '코칭 전문 도구'이며, 의료적 치료나 정신건강 상담을 대신하지 않습니다.", "consentNotice2": "작업 중 불편감이나 긴장감이 느껴지면 언제든지 [일시정지]를 누르거나 작업을 멈출 권리가 있습니다.", "consentNotice3": "모든 배치와 메모는 두 분의 브라우저 간에만 직접 실시간 암호화(P2P)로 공유되며, 중앙 서버에 어떠한 데이터도 저장되지 않습니다.", "consentCrisis": "현재 심각한 정서적 위기나 자해/자살 충동이 있으신 경우 본 세션을 중단하시고 즉시 전문 기관(자살예방상담 109, 정신건강위기 1577-0199)의 도움을 받으시기 바랍니다.", "consentAgree": "위 안내 사항을 충분히 이해하였으며, 자발적인 의사로 세션에 참여합니다."}, "deroling": {"title": "역할 해제(De-roling) 및 그라운딩 의식", "intro": "세션을 마치기 전, 피규어에 투사되었던 정서와 의미를 거두어들이고 온전히 현실로 복귀하는 필수 마무리 단계입니다.", "step1": "1. 보드 위의 피규어들을 하나씩 클릭하여 '이것은 도구일 뿐, 실제 사람이 아닙니다'라고 확인하며 보류 존으로 퇴장시킵니다.", "step2": "2. 숨을 천천히 들이쉬고 내쉬며, 발바닥이 바닥에 닿는 단단한 감각을 느껴봅니다.", "step3": "3. 방 안에서 눈에 보이는 물건 3가지의 이름을 마음속으로 천천히 불러봅니다.", "step4": "4. 오늘 얻은 배움 중 내일 일상에서 실천할 '가장 작은 행동 하나'를 정합니다."}},
+      en: {"appTitle": "1:1 Table Constellation", "appSubtitle": "Social Constructionism & Systemic Constellation Web Canvas", "roomStatus": {"waiting": "Waiting for peer...", "connecting": "Connecting...", "connected": "Connected in real-time", "disconnected": "Disconnected", "reconnecting": "Reconnecting..."}, "roles": {"coach": "Coach (Host)", "client": "Client (Guest)"}, "buttons": {"copyLink": "Copy Invite Link", "copied": "Copied!", "pause": "Pause", "resume": "Resume", "undo": "Undo", "redo": "Redo", "reset": "Reset", "addFigure": "Add Figure", "saveSnapshot": "Save Snapshot", "exportPng": "Export PNG", "exportReport": "Report (MD)", "exportJson": "Export JSON", "finishSession": "Complete Session", "emergencyHelp": "Crisis Support", "apply": "Apply", "cancel": "Cancel", "confirm": "Confirm", "close": "Close"}, "safety": {"consentTitle": "Table Constellation Agreement & Safety Notice", "consentNotice1": "This tool is a coaching visualization instrument designed to facilitate systemic insight, not a substitute for clinical psychotherapy or medical treatment.", "consentNotice2": "You have the full right to pause or stop the session at any moment if you feel overwhelmed.", "consentNotice3": "All arrangements and notes are shared strictly peer-to-peer (P2P) between your browsers and are never stored on any server.", "consentCrisis": "If you are experiencing acute distress or suicidal ideation, please pause and reach out immediately to emergency helpline services.", "consentAgree": "I have read and agree to the above terms."}, "deroling": {"title": "De-roling & Grounding Ceremony", "intro": "A crucial concluding ritual to release emotional projections from the figures and return safely to present reality.", "step1": "1. Click each figure on the table, acknowledging 'This was only a symbolic tool, not the actual person', returning it to the waiting zone.", "step2": "2. Take three deep, grounding breaths and feel the solid ground beneath your feet.", "step3": "3. Name three physical objects you see in your current room.", "step4": "4. Formulate the smallest concrete commitment or action step for tomorrow."}}
+    };
+  }
+  init() { return Promise.resolve(); }
+  t(path) {
+    const keys = path.split('.');
+    let cur = this.locales[this.currentLang];
+    for (const k of keys) {
+      if (cur && cur[k] !== undefined) cur = cur[k];
+      else return path;
+    }
+    return cur;
+  }
+  setLang(lang) {
+    if (this.locales[lang]) this.currentLang = lang;
+  }
+}
+const i18n = new I18n('ko');
+
+    // SyncAdapter Abstract Interface
+class SyncAdapter {
+  constructor() {
+    this.opHandlers = [];
+    this.peerChangeHandlers = [];
+    this.statusChangeHandlers = [];
+  }
+
+  async connect(roomId, role) {
+    throw new Error("connect() must be implemented by subclass");
+  }
+
+  send(op) {
+    throw new Error("send() must be implemented by subclass");
+  }
+
+  onOp(cb) {
+    this.opHandlers.push(cb);
+  }
+
+  onPeerChange(cb) {
+    this.peerChangeHandlers.push(cb);
+  }
+
+  onStatusChange(cb) {
+    this.statusChangeHandlers.push(cb);
+  }
+
+  emitOp(op, fromRole) {
+    for (const h of this.opHandlers) h(op, fromRole);
+  }
+
+  emitPeerChange(peers, count) {
+    for (const h of this.peerChangeHandlers) h(peers, count);
+  }
+
+  emitStatusChange(status, msg) {
+    for (const h of this.statusChangeHandlers) h(status, msg);
+  }
+
+  disconnect() {
+    throw new Error("disconnect() must be implemented by subclass");
+  }
+}
+
+    
+class PeerJsAdapter extends SyncAdapter {
+  constructor() {
+    super();
+    this.peer = null;
+    this.conn = null;
+    this.roomId = null;
+    this.role = null;
+    this.isHost = false;
+    this.heartbeatTimer = null;
+    this.connectTimeoutTimer = null;
+  }
+
+  async connect(roomId, role) {
+    this.roomId = roomId;
+    this.role = role;
+    this.isHost = (role === 'coach');
+
+    this.emitStatusChange('connecting', '시그널링 서버 연결 중...');
+
+    // Wait for PeerJS library to be available on window
+    if (!window.Peer) {
+      await new Promise(resolve => {
+        const check = setInterval(() => {
+          if (window.Peer) {
+            clearInterval(check);
+            resolve();
+          }
+        }, 100);
+      });
+    }
+
+    const peerId = this.isHost
+      ? `constellation-${roomId}-coach`
+      : `constellation-${roomId}-client-${Math.random().toString(36).substring(2, 7)}`;
+
+    return new Promise((resolve, reject) => {
+      try {
+        this.peer = new window.Peer(peerId, {
+          debug: 1,
+          config: {
+            iceServers: [
+              { urls: 'stun:stun.l.google.com:19302' },
+              { urls: 'stun:global.stun.twilio.com:3478' }
+            ]
+          }
+        });
+
+        this.peer.on('open', (id) => {
+          console.log(`[PeerJS] Peer opened with ID: ${id}`);
+          if (this.isHost) {
+            this.emitStatusChange('waiting', '고객 접속 대기 중...');
+            this.setupHostListeners();
+            resolve();
+          } else {
+            this.emitStatusChange('connecting', '코치 룸에 접속 시도 중...');
+            this.connectToHost();
+            resolve();
+          }
+        });
+
+        this.peer.on('error', (err) => {
+          console.error('[PeerJS] Error:', err);
+          if (err.type === 'unavailable-id' && this.isHost) {
+            // Coach ID already in use: another coach tab is open
+            this.emitStatusChange('error', '이미 동일한 코치 세션이 열려 있습니다.');
+          } else if (err.type === 'peer-unavailable' && !this.isHost) {
+            this.emitStatusChange('waiting', '코치가 아직 입장하지 않았습니다. 대기 중...');
+            // Retry connecting after 3 seconds
+            setTimeout(() => {
+              if (this.peer && !this.conn) this.connectToHost();
+            }, 3000);
+          } else {
+            this.emitStatusChange('error', `연결 오류: ${err.message || err.type}`);
+          }
+        });
+
+        this.peer.on('disconnected', () => {
+          console.warn('[PeerJS] Disconnected from signaling server');
+          this.emitStatusChange('reconnecting', '시그널링 서버 재연결 시도 중...');
+          if (this.peer && !this.peer.destroyed) {
+            this.peer.reconnect();
+          }
+        });
+
+      } catch (e) {
+        this.emitStatusChange('error', e.message);
+        reject(e);
+      }
+    });
+  }
+
+  setupHostListeners() {
+    this.peer.on('connection', (incomingConn) => {
+      // Rule A4: Max 2 participants (1 coach, 1 client)
+      if (this.conn && this.conn.open) {
+        console.warn('[PeerJS] Extra connection rejected. Max 2 participants allowed.');
+        incomingConn.send({ type: 'error', message: '방 인원이 초과되었습니다 (최대 2인).' });
+        setTimeout(() => incomingConn.close(), 500);
+        return;
+      }
+
+      this.conn = incomingConn;
+      this.setupConnectionListeners(this.conn, 'client');
+    });
+  }
+
+  connectToHost() {
+    const targetPeerId = `constellation-${this.roomId}-coach`;
+    console.log(`[PeerJS] Client connecting to host: ${targetPeerId}`);
+
+    const conn = this.peer.connect(targetPeerId, {
+      reliable: true
+    });
+
+    this.conn = conn;
+    this.setupConnectionListeners(conn, 'coach');
+
+    // 20-second timeout warning as per spec 3.8
+    clearTimeout(this.connectTimeoutTimer);
+    this.connectTimeoutTimer = setTimeout(() => {
+      if (!this.conn || !this.conn.open) {
+        this.emitStatusChange('disconnected', '네트워크 환경으로 인해 P2P 직접 연결이 지연되고 있습니다.');
+      }
+    }, 20000);
+  }
+
+  setupConnectionListeners(conn, remoteRole) {
+    conn.on('open', () => {
+      clearTimeout(this.connectTimeoutTimer);
+      console.log(`[PeerJS] DataChannel connection OPEN with ${remoteRole}`);
+      this.emitStatusChange('connected', `상대방(${remoteRole === 'coach' ? '코치' : '고객'})과 연결됨`);
+      this.emitPeerChange([this.role, remoteRole], 2);
+
+      // Start ping heartbeat
+      this.startHeartbeat();
+
+      // If host, send full initial sync state
+      if (this.isHost) {
+        this.emitOp({ t: 'sync.request_full' }, this.role);
+      }
+    });
+
+    conn.on('data', (data) => {
+      if (!data) return;
+      if (data.type === 'ping') {
+        conn.send({ type: 'pong' });
+        return;
+      }
+      if (data.type === 'pong') {
+        return;
+      }
+      if (data.type === 'error') {
+        this.emitStatusChange('error', data.message);
+        return;
+      }
+
+      // Valid Op received
+      this.emitOp(data, remoteRole);
+    });
+
+    conn.on('close', () => {
+      console.warn(`[PeerJS] Connection CLOSED with ${remoteRole}`);
+      this.stopHeartbeat();
+      this.conn = null;
+      this.emitStatusChange('disconnected', '상대방과의 연결이 끊어졌습니다.');
+      this.emitPeerChange([this.role], 1);
+
+      // Client auto-reconnect attempt
+      if (!this.isHost) {
+        setTimeout(() => {
+          if (!this.conn && this.peer && !this.peer.destroyed) {
+            this.emitStatusChange('reconnecting', '코치 룸에 재연결 시도 중...');
+            this.connectToHost();
+          }
+        }, 3000);
+      }
+    });
+
+    conn.on('error', (err) => {
+      console.error(`[PeerJS] Connection error:`, err);
+    });
+  }
+
+  startHeartbeat() {
+    this.stopHeartbeat();
+    this.heartbeatTimer = setInterval(() => {
+      if (this.conn && this.conn.open) {
+        this.conn.send({ type: 'ping' });
+      }
+    }, 5000);
+  }
+
+  stopHeartbeat() {
+    if (this.heartbeatTimer) {
+      clearInterval(this.heartbeatTimer);
+      this.heartbeatTimer = null;
+    }
+  }
+
+  send(op) {
+    if (this.conn && this.conn.open) {
+      try {
+        this.conn.send(op);
+      } catch (err) {
+        console.error('[PeerJS] Send op error:', err);
+      }
+    } else {
+      // If disconnected, host stores locally; client waits
+      console.warn('[PeerJS] Cannot send op - connection not open');
+    }
+  }
+
+  disconnect() {
+    this.stopHeartbeat();
+    clearTimeout(this.connectTimeoutTimer);
+    if (this.conn) {
+      this.conn.close();
+      this.conn = null;
+    }
+    if (this.peer) {
+      this.peer.destroy();
+      this.peer = null;
+    }
+    this.emitStatusChange('disconnected', '연결이 종료되었습니다.');
+  }
+}
+
+    // Central Session State Store with Reactive Event Listeners
+class SessionState {
+  constructor(roomId, role) {
+    this.roomId = roomId;
+    this.role = role; // 'coach' | 'client'
+    this.listeners = new Set();
+    
+    // Core Session Data (Spec 3.7)
+    this.session = {
+      schemaVersion: 1,
+      roomId: roomId,
+      createdAt: new Date().toISOString(),
+      topic: "",
+      templateId: "free",
+      stage: 0,
+      locked: false,
+      paused: false,
+      tableSkin: "round_wood", // 'default' | 'round_wood' | 'square_areca' | 'plate_basic'
+      figures: {},
+      links: {},
+      snapshots: [],
+      notes: "",
+      commitment: "",
+      consent: { coach: false, client: false }
+    };
+
+    // UI-only state (not synchronized over network)
+    this.ui = {
+      selectedFigureId: null,
+      selectedLinkIds: [],
+      activeTool: 'select', // 'select' | 'link' | 'rotate'
+      zoom: 1.0,
+      panX: 0,
+      panY: 0,
+      ghostSuggestion: null // { id, x, y, angle }
+    };
+
+    // Undo / Redo history stacks (stores figures snapshots)
+    this.undoStack = [];
+    this.redoStack = [];
+
+    // Try restoring from LocalStorage if coach
+    this.restoreLocalBackup();
+  }
+
+  subscribe(listener) {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  }
+
+  notify(changeType = 'update', detail = null) {
+    for (const l of this.listeners) {
+      try {
+        l(this.session, this.ui, changeType, detail);
+      } catch (e) {
+        console.error("SessionState listener error:", e);
+      }
+    }
+    this.saveLocalBackup();
+  }
+
+  // Local Storage Autosave (Spec G4, 3.10)
+  saveLocalBackup() {
+    try {
+      const key = `constellation_backup_${this.roomId}`;
+      localStorage.setItem(key, JSON.stringify(this.session));
+    } catch (e) {
+      console.warn("LocalStorage save error:", e);
+    }
+  }
+
+  restoreLocalBackup() {
+    try {
+      const key = `constellation_backup_${this.roomId}`;
+      const saved = localStorage.getItem(key);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.schemaVersion === 1) {
+          this.session = Object.assign(this.session, parsed);
+          console.log("[SessionState] Restored local backup for room:", this.roomId);
+        }
+      }
+    } catch (e) {
+      console.warn("LocalStorage restore error:", e);
+    }
+  }
+
+  clearLocalBackup() {
+    try {
+      const key = `constellation_backup_${this.roomId}`;
+      localStorage.removeItem(key);
+    } catch (e) {}
+  }
+
+  // --- Snapshot & History Management ---
+  saveHistory() {
+    // Keep max 20 undo states
+    const snapshot = JSON.stringify(this.session.figures);
+    this.undoStack.push(snapshot);
+    if (this.undoStack.length > 20) this.undoStack.shift();
+    this.redoStack = []; // clear redo on new action
+  }
+
+  undo() {
+    if (this.undoStack.length === 0) return null;
+    const current = JSON.stringify(this.session.figures);
+    this.redoStack.push(current);
+    const prev = JSON.parse(this.undoStack.pop());
+    this.session.figures = prev;
+    this.notify('figures', { action: 'undo' });
+    return prev;
+  }
+
+  redo() {
+    if (this.redoStack.length === 0) return null;
+    const current = JSON.stringify(this.session.figures);
+    this.undoStack.push(current);
+    const next = JSON.parse(this.redoStack.pop());
+    this.session.figures = next;
+    this.notify('figures', { action: 'redo' });
+    return next;
+  }
+
+  // --- Getters & Helpers ---
+  getFigure(id) {
+    return this.session.figures[id] || null;
+  }
+
+  getSelectedFigure() {
+    return this.ui.selectedFigureId ? this.getFigure(this.ui.selectedFigureId) : null;
+  }
+
+  setSelectedFigure(id) {
+    this.ui.selectedFigureId = id;
+    this.notify('select', { figureId: id });
+  }
+
+  setGhostSuggestion(suggestion) {
+    this.ui.ghostSuggestion = suggestion;
+    this.notify('ghost', suggestion);
+  }
+
+  // Full state replacement (used on initial sync)
+  replaceFullState(newSession) {
+    if (!newSession) return;
+    this.session = Object.assign(this.session, newSession);
+    this.notify('full_sync');
+  }
+}
+
+    // Host Authority Manager: Op Processor & Conflict Resolver
+class HostAuthority {
+  constructor(sessionState, syncAdapter) {
+    this.state = sessionState;
+    this.sync = syncAdapter;
+    this.role = sessionState.role;
+    this.isHost = (this.role === 'coach');
+
+    // Register op receiver from sync adapter
+    this.sync.onOp((op, fromRole) => {
+      this.handleRemoteOp(op, fromRole);
+    });
+  }
+
+  // Local Op Dispatcher
+  dispatch(op) {
+    // 1. Process locally first
+    this.applyOp(op, this.role);
+
+    // 2. Broadcast to peer via SyncAdapter
+    this.sync.send(op);
+  }
+
+  // Remote Op Handler
+  handleRemoteOp(op, fromRole) {
+    if (!op || !op.t) return;
+
+    if (op.t === 'sync.request_full' && this.isHost) {
+      // Client requested initial full state snapshot
+      this.sync.send({
+        t: 'sync.full',
+        session: this.state.session
+      });
+      return;
+    }
+
+    if (op.t === 'sync.full') {
+      this.state.replaceFullState(op.session);
+      return;
+    }
+
+    // Apply remote op to local session state
+    this.applyOp(op, fromRole);
+  }
+
+  // Apply Op to State
+  applyOp(op, fromRole) {
+    const s = this.state.session;
+
+    switch (op.t) {
+      case 'fig.add': {
+        if (!op.fig || !op.fig.id) break;
+        this.state.saveHistory();
+        s.figures[op.fig.id] = { ...op.fig, rev: (op.fig.rev || 0) + 1 };
+        this.state.notify('figures', { action: 'add', figure: s.figures[op.fig.id] });
+        break;
+      }
+
+      case 'fig.move': {
+        const fig = s.figures[op.id];
+        if (!fig) break;
+        // Check revision conflict
+        if (op.rev !== undefined && op.rev < fig.rev) {
+          // Stale op, ignore
+          break;
+        }
+        fig.x = op.x;
+        fig.y = op.y;
+        if (op.angle !== undefined) fig.angle = op.angle;
+        if (op.zone !== undefined) fig.zone = op.zone;
+        fig.rev = (fig.rev || 0) + 1;
+        this.state.notify('figures', { action: 'move', figure: fig });
+        break;
+      }
+
+      case 'fig.patch': {
+        const fig = s.figures[op.id];
+        if (!fig) break;
+        this.state.saveHistory();
+        Object.assign(fig, op.patch);
+        fig.rev = (fig.rev || 0) + 1;
+        this.state.notify('figures', { action: 'patch', figure: fig });
+        break;
+      }
+
+      case 'fig.remove': {
+        if (!s.figures[op.id]) break;
+        this.state.saveHistory();
+        delete s.figures[op.id];
+        // Remove connected links
+        for (const [lid, link] of Object.entries(s.links)) {
+          if (link.from === op.id || link.to === op.id) {
+            delete s.links[lid];
+          }
+        }
+        if (this.state.ui.selectedFigureId === op.id) {
+          this.state.ui.selectedFigureId = null;
+        }
+        this.state.notify('figures', { action: 'remove', id: op.id });
+        break;
+      }
+
+      case 'link.add': {
+        if (!op.link || !op.link.id) break;
+        s.links[op.link.id] = op.link;
+        this.state.notify('links', { action: 'add', link: op.link });
+        break;
+      }
+
+      case 'link.remove': {
+        if (!s.links[op.id]) break;
+        delete s.links[op.id];
+        this.state.notify('links', { action: 'remove', id: op.id });
+        break;
+      }
+
+      case 'snap.add': {
+        if (!op.snap) break;
+        s.snapshots.push(op.snap);
+        this.state.notify('snapshots', { action: 'add', snapshot: op.snap });
+        break;
+      }
+
+      case 'session.patch': {
+        if (!op.patch) break;
+        Object.assign(s, op.patch);
+        this.state.notify('session', op.patch);
+        break;
+      }
+
+      case 'suggest': {
+        // Coach suggests ghost placement
+        this.state.setGhostSuggestion({
+          id: op.id,
+          x: op.x,
+          y: op.y,
+          angle: op.angle
+        });
+        break;
+      }
+
+      case 'suggest.respond': {
+        const ghost = this.state.ui.ghostSuggestion;
+        if (ghost && ghost.id === op.id) {
+          if (op.accept && s.figures[op.id]) {
+            // Apply suggestion as actual move
+            this.dispatch({
+              t: 'fig.move',
+              id: ghost.id,
+              x: ghost.x,
+              y: ghost.y,
+              angle: ghost.angle
+            });
+          }
+          this.state.setGhostSuggestion(null);
+        }
+        break;
+      }
+    }
+  }
+}
+
+    // Figure SVG Renderer: Shapes, Gaze Vectors, Rotation Handles, and Physical Image Skins
+class FigureRenderer {
+  static SIZES = {
+    S: 22,
+    M: 32,
+    L: 44
+  };
+
+  static render(fig, isSelected = false, isGhost = false) {
+    const r = this.SIZES[fig.size || 'M'] || 32;
+    const opacity = isGhost ? 0.45 : (fig.released ? 0.4 : 1.0);
+    const strokeDash = isGhost ? 'stroke-dasharray="4 4"' : '';
+    const angle = fig.angle || 0;
+
+    // SVG Group containing the figure, rotated around (0,0)
+    let shapeSvg = '';
+
+    if (fig.imageSrc) {
+      // Physical Ball / Crystal Image Skin
+      shapeSvg = `
+        <image href="${fig.imageSrc}" x="${-r}" y="${-r}" width="${r * 2}" height="${r * 2}" preserveAspectRatio="xMidYMid meet" />
+        <!-- Distinct Gaze Pointer for Images -->
+        <path d="M 0 ${-r - 12} L -7 ${-r + 2} L 7 ${-r + 2} Z" fill="#EF4444" stroke="#FFFFFF" stroke-width="1.5" filter="drop-shadow(0px 2px 3px rgba(0,0,0,0.4))" />
+      `;
+    } else {
+      switch (fig.shape) {
+        case 'person':
+          shapeSvg = `
+            <!-- Shoulders / Body -->
+            <path d="M ${-r * 0.8} ${r * 0.75} C ${-r * 0.8} ${r * 0.2}, ${r * 0.8} ${r * 0.2}, ${r * 0.8} ${r * 0.75} Z" fill="${fig.color}" />
+            <!-- Head -->
+            <circle cx="0" cy="${-r * 0.15}" r="${r * 0.45}" fill="${fig.color}" stroke="#FFFFFF" stroke-width="2" />
+            <!-- Clear Nose / Gaze Indicator (Pointing to 12 o'clock) -->
+            <path d="M 0 ${-r * 0.9} L -6 ${-r * 0.4} L 6 ${-r * 0.4} Z" fill="#F59E0B" stroke="#FFFFFF" stroke-width="1.2" />
+          `;
+          break;
+
+        case 'circle':
+          shapeSvg = `
+            <circle cx="0" cy="0" r="${r * 0.75}" fill="${fig.color}" stroke="#FFFFFF" stroke-width="2.5" />
+            <!-- Gaze Arrow Pointer -->
+            <path d="M 0 ${-r * 1.05} L -7 ${-r * 0.6} L 7 ${-r * 0.6} Z" fill="#F59E0B" stroke="#FFFFFF" stroke-width="1.5" />
+          `;
+          break;
+
+        case 'square':
+          shapeSvg = `
+            <rect x="${-r * 0.7}" y="${-r * 0.7}" width="${r * 1.4}" height="${r * 1.4}" rx="${r * 0.25}" fill="${fig.color}" stroke="#FFFFFF" stroke-width="2.5" />
+            <path d="M 0 ${-r * 1.05} L -6 ${-r * 0.65} L 6 ${-r * 0.65} Z" fill="#F59E0B" stroke="#FFFFFF" stroke-width="1.5" />
+          `;
+          break;
+
+        case 'star': {
+          const outerR = r * 0.85;
+          const innerR = r * 0.4;
+          let points = [];
+          for (let i = 0; i < 10; i++) {
+            const rad = (i * Math.PI) / 5 - Math.PI / 2;
+            const curR = i % 2 === 0 ? outerR : innerR;
+            points.push(`${curR * Math.cos(rad)},${curR * Math.sin(rad)}`);
+          }
+          shapeSvg = `
+            <polygon points="${points.join(' ')}" fill="${fig.color}" stroke="#FFFFFF" stroke-width="2" />
+            <path d="M 0 ${-r * 1.15} L -6 ${-r * 0.75} L 6 ${-r * 0.75} Z" fill="#F59E0B" stroke="#FFFFFF" stroke-width="1.5" />
+          `;
+          break;
+        }
+
+        case 'diamond':
+          shapeSvg = `
+            <polygon points="0,${-r * 0.9} ${r * 0.75},0 0,${r * 0.9} ${-r * 0.75},0" fill="${fig.color}" stroke="#FFFFFF" stroke-width="2" />
+            <path d="M 0 ${-r * 1.15} L -6 ${-r * 0.8} L 6 ${-r * 0.8} Z" fill="#F59E0B" stroke="#FFFFFF" stroke-width="1.5" />
+          `;
+          break;
+
+        case 'observer':
+          // Metaphoric Eye Symbol for Meta-Observer
+          shapeSvg = `
+            <path d="M ${-r * 0.9} 0 Q 0 ${-r * 0.7} ${r * 0.9} 0 Q 0 ${r * 0.7} ${-r * 0.9} 0 Z" fill="${fig.color}" stroke="#FFFFFF" stroke-width="2.5" />
+            <circle cx="0" cy="0" r="${r * 0.35}" fill="#FFFFFF" />
+            <!-- Pupil looking forward -->
+            <circle cx="0" cy="${-r * 0.1}" r="${r * 0.2}" fill="#0F172A" />
+            <path d="M 0 ${-r * 1.05} L -6 ${-r * 0.65} L 6 ${-r * 0.65} Z" fill="#3B82F6" stroke="#FFFFFF" stroke-width="1.2" />
+          `;
+          break;
+
+        default:
+          shapeSvg = `<circle cx="0" cy="0" r="${r * 0.75}" fill="${fig.color}" stroke="#FFFFFF" stroke-width="2" />`;
+      }
+    }
+
+    // Selection Ring and Rotation Knob
+    let selectionOverlay = '';
+    if (isSelected && !isGhost) {
+      const knobDist = r + 24;
+      selectionOverlay = `
+        <!-- Selection Highlight Ring (Clean, static, tightly focused around figure) -->
+        <circle cx="0" cy="0" r="${r + 8}" fill="none" stroke="#3B82F6" stroke-width="2" stroke-dasharray="4 3" opacity="0.9" />
+        
+        <!-- Rotation Stem & Knob (Interactive rotation handle) -->
+        <line x1="0" y1="${-r - 5}" x2="0" y2="${-knobDist}" stroke="#3B82F6" stroke-width="2" />
+        <circle cx="0" cy="${-knobDist}" r="7" fill="#3B82F6" stroke="#FFFFFF" stroke-width="2" class="cursor-grab hover:scale-125 transition-transform" data-handle="rotate" />
+      `;
+    }
+
+    // Label Badge rendered horizontally below the figure (doesn't rotate with angle so it remains easily readable)
+    const labelText = fig.label || '피규어';
+    const labelY = r + 18;
+
+    return `
+      <g id="fig-group-${fig.id}" class="figure-element cursor-move select-none" transform="translate(${fig.x}, ${fig.y})" data-id="${fig.id}" opacity="${opacity}">
+        <!-- Rotatable Figure Core -->
+        <g transform="rotate(${angle})" ${strokeDash}>
+          ${shapeSvg}
+          ${selectionOverlay}
+        </g>
+
+        <!-- Unrotated Text Label Pill (Always upright for clarity) -->
+        <g transform="translate(0, ${labelY})" pointer-events="none">
+          <rect x="${-labelText.length * 6 - 8}" y="-10" width="${labelText.length * 12 + 16}" height="20" rx="10" fill="rgba(15, 23, 42, 0.85)" />
+          <text x="0" y="4" text-anchor="middle" fill="#FFFFFF" font-size="11" font-weight="600" font-family="'Pretendard', sans-serif">
+            ${labelText}
+          </text>
+        </g>
+      </g>
+    `;
+  }
+}
+
+    // Link & Distance Measurement Overlay
+class LinkOverlay {
+  static classifyDistance(dist) {
+    if (dist < 150) return { level: 'near', text: '가까움' };
+    if (dist <= 350) return { level: 'medium', text: '중간' };
+    return { level: 'far', text: '멂' };
+  }
+
+  static renderLinks(links, figures) {
+    let svg = '';
+
+    for (const [id, link] of Object.entries(links)) {
+      const fromFig = figures[link.from];
+      const toFig = figures[link.to];
+      if (!fromFig || !toFig) continue;
+
+      const dx = toFig.x - fromFig.x;
+      const dy = toFig.y - fromFig.y;
+      const dist = Math.hypot(dx, dy);
+      const midX = (fromFig.x + toFig.x) / 2;
+      const midY = (fromFig.y + toFig.y) / 2;
+      const distInfo = this.classifyDistance(dist);
+
+      const color = link.color || '#6366F1';
+      const marker = link.kind === 'arrow' ? 'url(#arrowhead-blue)' : '';
+
+      svg += `
+        <g id="link-${id}" class="link-element select-none" data-id="${id}">
+          <line x1="${fromFig.x}" y1="${fromFig.y}" x2="${toFig.x}" y2="${toFig.y}" 
+                stroke="${color}" stroke-width="2.5" stroke-dasharray="6 4" marker-end="${marker}" />
+          <!-- Distance Pill Label with One-Click '×' Delete Button -->
+          <g transform="translate(${midX}, ${midY})" pointer-events="auto" class="cursor-pointer link-label-group" data-link-id="${id}" title="클릭하여 관계선 삭제">
+            <rect x="-42" y="-11" width="84" height="22" rx="11" fill="#FFFFFF" stroke="${color}" stroke-width="1.8" filter="drop-shadow(0px 2px 4px rgba(0,0,0,0.1))" />
+            <text x="-8" y="4" text-anchor="middle" fill="#1E293B" font-size="10" font-weight="700">
+              ${link.label || distInfo.text}
+            </text>
+            <!-- Delete X Button -->
+            <g class="btn-delete-link hover:scale-125 transition-transform" transform="translate(26, 0)">
+              <circle cx="0" cy="0" r="7" fill="#FEE2E2" stroke="#EF4444" stroke-width="1" />
+              <text x="0" y="3" text-anchor="middle" fill="#EF4444" font-size="10" font-weight="900">&times;</text>
+            </g>
+          </g>
+        </g>
+      `;
+    }
+
+    return svg;
+  }
+}
+
+    // Gesture Controller: Wheel Zoom, Pan, Drag, and Touch Pinch
+class GestureController {
+  constructor(canvasContainer, onTransformChange) {
+    this.container = canvasContainer;
+    this.onTransformChange = onTransformChange;
+    this.zoom = 1.0;
+    this.panX = 0;
+    this.panY = 0;
+    this.isPanning = false;
+    this.startPanX = 0;
+    this.startPanY = 0;
+
+    this.initEvents();
+  }
+
+  initEvents() {
+    // Wheel Zoom
+    this.container.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const zoomFactor = e.deltaY < 0 ? 1.08 : 0.92;
+      const newZoom = Math.min(Math.max(this.zoom * zoomFactor, 0.4), 3.0);
+      this.zoom = newZoom;
+      this.triggerUpdate();
+    }, { passive: false });
+
+    // Middle click or Alt+Drag pan
+    this.container.addEventListener('pointerdown', (e) => {
+      if (e.button === 1 || (e.button === 0 && (e.altKey || e.target.id === 'boardBackground' || e.target.id === 'mainSvg'))) {
+        this.isPanning = true;
+        this.startPanX = e.clientX - this.panX;
+        this.startPanY = e.clientY - this.panY;
+        this.container.style.cursor = 'grabbing';
+      }
+    });
+
+    window.addEventListener('pointermove', (e) => {
+      if (!this.isPanning) return;
+      this.panX = e.clientX - this.startPanX;
+      this.panY = e.clientY - this.startPanY;
+      this.triggerUpdate();
+    });
+
+    window.addEventListener('pointerup', () => {
+      if (this.isPanning) {
+        this.isPanning = false;
+        this.container.style.cursor = 'default';
+      }
+    });
+  }
+
+  resetTransform() {
+    this.zoom = 1.0;
+    this.panX = 0;
+    this.panY = 0;
+    this.triggerUpdate();
+  }
+
+  triggerUpdate() {
+    this.onTransformChange(this.zoom, this.panX, this.panY);
+  }
+
+  // Convert screen client coordinates to SVG logical coordinates (0~1000)
+  screenToSvg(clientX, clientY, svgElem) {
+    const rect = svgElem.getBoundingClientRect();
+    const pt = svgElem.createSVGPoint();
+    pt.x = clientX;
+    pt.y = clientY;
+    const svgP = pt.matrixTransform(svgElem.getScreenCTM().inverse());
+    return { x: Math.round(svgP.x), y: Math.round(svgP.y) };
+  }
+}
+
+    
+class BoardCanvas {
+  constructor(containerElem, sessionState, hostAuthority) {
+    this.container = containerElem;
+    this.state = sessionState;
+    this.authority = hostAuthority;
+
+    // Interaction flags
+    this.draggingFigId = null;
+    this.rotatingFigId = null;
+    this.dragStartPos = { x: 0, y: 0 };
+    this.figStartPos = { x: 0, y: 0 };
+    this.lastBroadcastTime = 0;
+    this.snapToGrid = false;
+    this.linkSourceFigId = null;
+
+    this.renderSkeleton();
+    this.gesture = new GestureController(this.container, (zoom, px, py) => {
+      this.applyViewTransform(zoom, px, py);
+    });
+
+    this.bindPointerEvents();
+    this.bindKeyboardShortcuts();
+
+    // Subscribe to state changes
+    this.state.subscribe(() => {
+      this.render();
+    });
+
+    this.render();
+  }
+
+  renderSkeleton() {
+    this.container.innerHTML = `
+      <div id="boardViewport" class="relative w-full h-full overflow-hidden select-none bg-slate-50">
+        <svg id="mainSvg" viewBox="0 0 1000 1000" class="w-full h-full pointer-events-auto">
+          <defs>
+            <filter id="tableShadow" x="-10%" y="-10%" width="120%" height="120%">
+              <feDropShadow dx="0" dy="8" stdDeviation="16" flood-opacity="0.12" flood-color="#0F172A" />
+            </filter>
+            <filter id="figShadow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="4" stdDeviation="6" flood-opacity="0.18" flood-color="#0F172A" />
+            </filter>
+            <marker id="arrowhead-blue" markerWidth="10" markerHeight="7" refX="8" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#6366F1" />
+            </marker>
+            <pattern id="gridPattern" width="40" height="40" patternUnits="userSpaceOnUse">
+              <circle cx="20" cy="20" r="1" fill="#CBD5E1" opacity="0.6"/>
+            </pattern>
+          </defs>
+
+          <!-- Canvas Transform Container Group -->
+          <g id="canvasTransformGroup">
+            <!-- Background Clickable Layer -->
+            <rect id="boardBackground" x="-2000" y="-2000" width="5000" height="5000" fill="url(#gridPattern)" />
+
+            <!-- Table Plate Layer -->
+            <g id="tableLayer"></g>
+
+            <!-- Waiting Zone (보류 존) -->
+            <g id="waitingZoneLayer" transform="translate(100, 830)">
+              <rect x="0" y="0" width="800" height="130" rx="16" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="2" stroke-dasharray="6 4" opacity="0.9" />
+              <text x="24" y="26" fill="#64748B" font-size="12" font-weight="700" font-family="'Pretendard', sans-serif">
+                📥 보류 존 (테이블 밖 대기 영역 / 내려놓은 짐)
+              </text>
+            </g>
+
+            <!-- Connecting Lines Layer -->
+            <g id="linksLayer"></g>
+
+            <!-- Figures Layer -->
+            <g id="figuresLayer" filter="url(#figShadow)"></g>
+
+            <!-- Ghost Suggestion Layer -->
+            <g id="ghostLayer"></g>
+          </g>
+        </svg>
+      </div>
+    `;
+
+    this.svg = this.container.querySelector('#mainSvg');
+    this.transformGroup = this.container.querySelector('#canvasTransformGroup');
+    this.tableLayer = this.container.querySelector('#tableLayer');
+    this.linksLayer = this.container.querySelector('#linksLayer');
+    this.figuresLayer = this.container.querySelector('#figuresLayer');
+    this.ghostLayer = this.container.querySelector('#ghostLayer');
+  }
+
+  applyViewTransform(zoom, px, py) {
+    this.transformGroup.setAttribute('transform', `translate(${px}, ${py}) scale(${zoom})`);
+  }
+
+  render() {
+    this.renderTableSkin();
+    this.renderLinks();
+    this.renderFigures();
+    this.renderGhost();
+  }
+
+  renderTableSkin() {
+    const skin = this.state.session.tableSkin || 'round_wood';
+    let html = '';
+
+    switch (skin) {
+      case 'round_wood':
+        html = `
+          <!-- Circular Wood Dish Table -->
+          <image href="./assets/figures/table_wood_round_1.png" x="120" y="60" width="760" height="740" preserveAspectRatio="xMidYMid meet" filter="url(#tableShadow)" />
+          <circle cx="500" cy="430" r="3" fill="#A16207" opacity="0.4" />
+        `;
+        break;
+
+      case 'square_areca':
+        html = `
+          <!-- Square Areca Plate Table -->
+          <image href="./assets/figures/table_square_areca.png" x="130" y="70" width="740" height="720" preserveAspectRatio="xMidYMid meet" filter="url(#tableShadow)" />
+          <circle cx="500" cy="430" r="3" fill="#78350F" opacity="0.4" />
+        `;
+        break;
+
+      case 'plate_basic':
+        html = `
+          <image href="./assets/figures/table_plate_basic.png" x="140" y="80" width="720" height="700" preserveAspectRatio="xMidYMid meet" filter="url(#tableShadow)" />
+        `;
+        break;
+
+      default:
+        // Clean Minimal SVG Round Table
+        html = `
+          <circle cx="500" cy="430" r="360" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="4" filter="url(#tableShadow)" />
+          <circle cx="500" cy="430" r="340" fill="#F8FAFC" stroke="#F1F5F9" stroke-width="2" />
+          <circle cx="500" cy="430" r="4" fill="#94A3B8" opacity="0.5" />
+          <!-- Subtle Cardinal Guide Marks -->
+          <line x1="500" y1="90" x2="500" y2="110" stroke="#CBD5E1" stroke-width="2" />
+          <line x1="500" y1="750" x2="500" y2="770" stroke="#CBD5E1" stroke-width="2" />
+          <line x1="160" y1="430" x2="180" y2="430" stroke="#CBD5E1" stroke-width="2" />
+          <line x1="820" y1="430" x2="840" y2="430" stroke="#CBD5E1" stroke-width="2" />
+        `;
+    }
+
+    this.tableLayer.innerHTML = html;
+  }
+
+  renderLinks() {
+    this.linksLayer.innerHTML = LinkOverlay.renderLinks(this.state.session.links, this.state.session.figures);
+  }
+
+  renderFigures() {
+    const selectedId = this.state.ui.selectedFigureId;
+    let html = '';
+
+    for (const [id, fig] of Object.entries(this.state.session.figures)) {
+      html += FigureRenderer.render(fig, id === selectedId, false);
+    }
+
+    this.figuresLayer.innerHTML = html;
+  }
+
+  renderGhost() {
+    const ghost = this.state.ui.ghostSuggestion;
+    if (!ghost || !this.state.session.figures[ghost.id]) {
+      this.ghostLayer.innerHTML = '';
+      return;
+    }
+
+    const baseFig = this.state.session.figures[ghost.id];
+    const ghostFig = { ...baseFig, x: ghost.x, y: ghost.y, angle: ghost.angle || baseFig.angle };
+    this.ghostLayer.innerHTML = FigureRenderer.render(ghostFig, false, true);
+  }
+
+  // --- Interaction & Event Binding ---
+  bindPointerEvents() {
+    this.svg.addEventListener('pointerdown', (e) => {
+      // If locked, prevent interaction
+      if (this.state.session.locked || this.state.session.paused) return;
+
+      const targetHandle = e.target.getAttribute('data-handle');
+      const figureGroup = e.target.closest('.figure-element');
+
+      if (targetHandle === 'rotate' && figureGroup) {
+        // Start rotation
+        const figId = figureGroup.getAttribute('data-id');
+        this.rotatingFigId = figId;
+        this.svg.setPointerCapture(e.pointerId);
+        e.stopPropagation();
+        return;
+      }
+
+      if (figureGroup) {
+        const figId = figureGroup.getAttribute('data-id');
+
+        // Line creation tool handling
+        if (this.state.ui.activeTool === 'link') {
+          if (!this.linkSourceFigId) {
+            this.linkSourceFigId = figId;
+            this.state.setSelectedFigure(figId);
+          } else if (this.linkSourceFigId !== figId) {
+            // Create link between linkSourceFigId and figId
+            const newLinkId = `link-${Date.now()}`;
+            this.authority.dispatch({
+              t: 'link.add',
+              link: {
+                id: newLinkId,
+                from: this.linkSourceFigId,
+                to: figId,
+                kind: 'arrow',
+                color: '#6366F1'
+              }
+            });
+            this.linkSourceFigId = null;
+            this.state.ui.activeTool = 'select';
+          }
+          return;
+        }
+
+        // Start figure drag
+        this.draggingFigId = figId;
+        this.state.setSelectedFigure(figId);
+        const pt = this.gesture.screenToSvg(e.clientX, e.clientY, this.svg);
+        this.dragStartPos = pt;
+        const fig = this.state.getFigure(figId);
+        if (fig) {
+          this.figStartPos = { x: fig.x, y: fig.y };
+        }
+        this.svg.setPointerCapture(e.pointerId);
+        e.stopPropagation();
+        return;
+      }
+
+      // Background click: deselect
+      // Check if user clicked a link delete button or link label
+      const linkGroup = e.target.closest('.link-label-group');
+      if (linkGroup) {
+        const linkId = linkGroup.getAttribute('data-link-id');
+        if (linkId) {
+          this.authority.dispatch({
+            t: 'link.remove',
+            id: linkId
+          });
+        }
+        e.stopPropagation();
+        return;
+      }
+
+      if (e.target.id === 'boardBackground') {
+        this.state.setSelectedFigure(null);
+        this.linkSourceFigId = null;
+      }
+    });
+
+    this.svg.addEventListener('pointermove', (e) => {
+      if (this.rotatingFigId) {
+        const fig = this.state.getFigure(this.rotatingFigId);
+        if (!fig) return;
+
+        const pt = this.gesture.screenToSvg(e.clientX, e.clientY, this.svg);
+        const dx = pt.x - fig.x;
+        const dy = pt.y - fig.y;
+        // Angle in degrees: 0 = 12 o'clock, clockwise
+        let angleDeg = Math.round((Math.atan2(dx, -dy) * 180) / Math.PI);
+        if (angleDeg < 0) angleDeg += 360;
+
+        fig.angle = angleDeg;
+        this.renderFigures();
+
+        // Throttled broadcast (every 60ms)
+        const now = Date.now();
+        if (now - this.lastBroadcastTime > 60) {
+          this.lastBroadcastTime = now;
+          this.authority.dispatch({
+            t: 'fig.move',
+            id: fig.id,
+            x: fig.x,
+            y: fig.y,
+            angle: angleDeg,
+            rev: fig.rev
+          });
+        }
+        return;
+      }
+
+      if (this.draggingFigId) {
+        const fig = this.state.getFigure(this.draggingFigId);
+        if (!fig || fig.locked) return;
+
+        const pt = this.gesture.screenToSvg(e.clientX, e.clientY, this.svg);
+        let newX = this.figStartPos.x + (pt.x - this.dragStartPos.x);
+        let newY = this.figStartPos.y + (pt.y - this.dragStartPos.y);
+
+        if (this.snapToGrid) {
+          newX = Math.round(newX / 25) * 25;
+          newY = Math.round(newY / 25) * 25;
+        }
+
+        // Zone detection: y >= 830 is waiting zone
+        const zone = newY >= 830 ? 'waiting' : 'table';
+
+        fig.x = newX;
+        fig.y = newY;
+        fig.zone = zone;
+        this.renderFigures();
+        this.renderLinks();
+
+        // Throttled broadcast
+        const now = Date.now();
+        if (now - this.lastBroadcastTime > 50) {
+          this.lastBroadcastTime = now;
+          this.authority.dispatch({
+            t: 'fig.move',
+            id: fig.id,
+            x: newX,
+            y: newY,
+            angle: fig.angle,
+            zone: zone,
+            rev: fig.rev
+          });
+        }
+      }
+    });
+
+    const endDragOrRotate = () => {
+      if (this.rotatingFigId) {
+        const fig = this.state.getFigure(this.rotatingFigId);
+        if (fig) {
+          // Final confirmed broadcast
+          this.authority.dispatch({
+            t: 'fig.move',
+            id: fig.id,
+            x: fig.x,
+            y: fig.y,
+            angle: fig.angle,
+            rev: fig.rev
+          });
+        }
+        this.rotatingFigId = null;
+      }
+
+      if (this.draggingFigId) {
+        const fig = this.state.getFigure(this.draggingFigId);
+        if (fig) {
+          // Final confirmed broadcast
+          this.authority.dispatch({
+            t: 'fig.move',
+            id: fig.id,
+            x: fig.x,
+            y: fig.y,
+            angle: fig.angle,
+            zone: fig.zone,
+            rev: fig.rev
+          });
+        }
+        this.draggingFigId = null;
+      }
+    };
+
+    this.svg.addEventListener('pointerup', endDragOrRotate);
+    this.svg.addEventListener('pointercancel', endDragOrRotate);
+  }
+
+  bindKeyboardShortcuts() {
+    window.addEventListener('keydown', (e) => {
+      // Ignore if typing in text inputs
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+      const selectedId = this.state.ui.selectedFigureId;
+      if (!selectedId) return;
+      const fig = this.state.getFigure(selectedId);
+      if (!fig) return;
+
+      // Q / E: Rotate 15 degrees
+      if (e.key === 'q' || e.key === 'Q') {
+        const newAngle = (fig.angle - 15 + 360) % 360;
+        this.authority.dispatch({ t: 'fig.move', id: fig.id, x: fig.x, y: fig.y, angle: newAngle });
+      } else if (e.key === 'e' || e.key === 'E') {
+        const newAngle = (fig.angle + 15) % 360;
+        this.authority.dispatch({ t: 'fig.move', id: fig.id, x: fig.x, y: fig.y, angle: newAngle });
+      }
+
+      // Arrow keys: fine move (5px)
+      if (e.key.startsWith('Arrow')) {
+        e.preventDefault();
+        const step = e.shiftKey ? 20 : 5;
+        let nx = fig.x;
+        let ny = fig.y;
+        if (e.key === 'ArrowUp') ny -= step;
+        if (e.key === 'ArrowDown') ny += step;
+        if (e.key === 'ArrowLeft') nx -= step;
+        if (e.key === 'ArrowRight') nx += step;
+        this.authority.dispatch({ t: 'fig.move', id: fig.id, x: nx, y: ny, angle: fig.angle });
+      }
+
+      // Delete / Backspace: remove
+      if (e.key === 'Delete') {
+        this.authority.dispatch({ t: 'fig.remove', id: fig.id });
+      }
+    });
+  }
+}
+
+    // Coach Exclusive Guide Controller
+class GuideController {
+  constructor(containerElem, sessionState, hostAuthority) {
+    this.container = containerElem;
+    this.state = sessionState;
+    this.authority = hostAuthority;
+    this.stages = [];
+    this.questions = {};
+    this.templates = [];
+
+    // CRITICAL: If not coach, do NOT render any DOM at all!
+    if (this.state.role !== 'coach') {
+      console.log("[GuideController] Client role detected. Coach guide panel NOT mounted.");
+      return;
+    }
+
+    this.init();
+  }
+
+  async init() {
+    this.stages = DATA_STAGES;
+    this.questions = DATA_QUESTIONS;
+    this.templates = DATA_TEMPLATES;
+
+    this.render();
+    this.bindEvents();
+
+    this.state.subscribe((session, ui, changeType) => {
+      if (changeType === 'session') {
+        this.updateStageDisplay();
+      }
+    });
+  }
+
+  render() {
+    this.container.innerHTML = `
+      <div id="coachGuidePanel" class="fixed bottom-4 right-4 z-40 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-blue-200 w-96 overflow-hidden flex flex-col transition-all duration-300">
+        <!-- Header -->
+        <div class="px-4 py-2.5 bg-gradient-to-r from-blue-700 to-indigo-800 text-white flex items-center justify-between cursor-pointer select-none" id="guideHeader">
+          <div class="flex items-center space-x-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span class="font-bold text-xs">🎓 코치 전용 가이드 & 질문 은행</span>
+          </div>
+          <button id="guideToggleBtn" class="text-white/80 hover:text-white text-xs font-bold px-1.5 py-0.5 rounded">
+            ▼
+          </button>
+        </div>
+
+        <!-- Body -->
+        <div id="guideBody" class="flex flex-col max-h-[480px] overflow-y-auto p-4 space-y-3 text-xs text-slate-700">
+          
+          <!-- Current Stage Card -->
+          <div class="bg-blue-50/70 border border-blue-200 rounded-xl p-3">
+            <div class="flex items-center justify-between mb-1">
+              <span id="guideStageBadge" class="font-bold text-blue-700 text-xs">단계 ③ 첫 배치</span>
+              <span id="guideStageTime" class="text-[11px] font-semibold text-slate-500">⏱ 권장 10분</span>
+            </div>
+            <p id="guideStageDesc" class="text-slate-600 mb-2 leading-relaxed">
+              고객이 생각으로 판단하지 않고 손이 가는 대로 피규어를 배치하도록 격려합니다.
+            </p>
+            <div class="bg-white p-2.5 rounded-lg border border-blue-100 shadow-2xs">
+              <span class="font-bold text-blue-600 block mb-1">💬 코치 핵심 질문:</span>
+              <p id="guideKeyQuestion" class="italic text-slate-800 font-medium">
+                "생각하지 마시고, 손이 닿는 느낌대로 직관적으로 놓아 보세요."
+              </p>
+            </div>
+            <!-- Stage Stepper Buttons -->
+            <div class="flex items-center justify-between mt-3 pt-2 border-t border-blue-100">
+              <button id="btnPrevStage" class="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-700 font-bold rounded-lg border border-slate-200 shadow-2xs">
+                ◂ 이전
+              </button>
+              <span id="guideStageStepText" class="font-mono font-bold text-slate-500 text-[11px]">3 / 8</span>
+              <button id="btnNextStage" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-2xs">
+                다음 단계 ▸
+              </button>
+            </div>
+          </div>
+
+          <!-- Tabs: Questions / Orders / Interventions / Templates -->
+          <div class="flex items-center bg-slate-100 p-0.5 rounded-lg text-[11px] font-semibold">
+            <button class="guide-tab-btn flex-1 py-1 rounded-md bg-white text-blue-700 shadow-2xs" data-tab="questions">질문 은행</button>
+            <button class="guide-tab-btn flex-1 py-1 rounded-md text-slate-600" data-tab="orders">질서 렌즈</button>
+            <button class="guide-tab-btn flex-1 py-1 rounded-md text-slate-600" data-tab="interventions">개입 기법</button>
+            <button class="guide-tab-btn flex-1 py-1 rounded-md text-slate-600" data-tab="templates">템플릿</button>
+          </div>
+
+          <!-- Tab Content Area -->
+          <div id="guideTabContent" class="space-y-2">
+            <!-- Rendered dynamically -->
+          </div>
+
+        </div>
+      </div>
+    `;
+
+    this.updateStageDisplay();
+    this.renderTabContent('questions');
+  }
+
+  updateStageDisplay() {
+    const curStageIdx = this.state.session.stage || 0;
+    const stageData = this.stages[curStageIdx] || this.stages[0];
+    if (!stageData) return;
+
+    const badge = this.container.querySelector('#guideStageBadge');
+    const time = this.container.querySelector('#guideStageTime');
+    const desc = this.container.querySelector('#guideStageDesc');
+    const keyQ = this.container.querySelector('#guideKeyQuestion');
+    const stepText = this.container.querySelector('#guideStageStepText');
+
+    if (badge) badge.textContent = `단계 [${stageData.stage}] ${stageData.name}`;
+    if (time) time.textContent = `⏱ 권장 ${stageData.time}`;
+    if (desc) desc.textContent = stageData.desc;
+    if (keyQ) keyQ.textContent = `"${stageData.keyQuestion}"`;
+    if (stepText) stepText.textContent = `${curStageIdx} / ${this.stages.length - 1}`;
+  }
+
+  renderTabContent(tabName) {
+    const container = this.container.querySelector('#guideTabContent');
+    if (!container) return;
+
+    if (tabName === 'questions') {
+      const q = this.questions.questionsByAspect || {};
+      container.innerHTML = `
+        <div class="space-y-2">
+          <div class="border border-slate-200 rounded-lg p-2 bg-slate-50">
+            <span class="font-bold text-slate-800 block mb-1">📏 거리(Distance) 질문</span>
+            <ul class="list-disc list-inside space-y-1 text-slate-600">
+              ${(q.distance || []).map(item => `<li>${item}</li>`).join('')}
+            </ul>
+          </div>
+          <div class="border border-slate-200 rounded-lg p-2 bg-slate-50">
+            <span class="font-bold text-slate-800 block mb-1">👀 시선(Gaze) 질문</span>
+            <ul class="list-disc list-inside space-y-1 text-slate-600">
+              ${(q.gaze || []).map(item => `<li>${item}</li>`).join('')}
+            </ul>
+          </div>
+          <div class="border border-slate-200 rounded-lg p-2 bg-slate-50">
+            <span class="font-bold text-slate-800 block mb-1">👥 군집과 빈자리</span>
+            <ul class="list-disc list-inside space-y-1 text-slate-600">
+              ${(q.emptySpace || []).map(item => `<li>${item}</li>`).join('')}
+            </ul>
+          </div>
+        </div>
+      `;
+    } else if (tabName === 'orders') {
+      const l = this.questions.lensesOfOrder || {};
+      container.innerHTML = `
+        <div class="space-y-2">
+          <div class="border border-amber-200 bg-amber-50/50 rounded-lg p-2">
+            <span class="font-bold text-amber-800 block mb-1">1. 소속(Belonging)의 렌즈</span>
+            <p class="text-amber-900">${(l.belonging || [])[0] || ''}</p>
+          </div>
+          <div class="border border-emerald-200 bg-emerald-50/50 rounded-lg p-2">
+            <span class="font-bold text-emerald-800 block mb-1">2. 균형(Balance)의 렌즈</span>
+            <p class="text-emerald-900">${(l.balance || [])[0] || ''}</p>
+          </div>
+          <div class="border border-indigo-200 bg-indigo-50/50 rounded-lg p-2">
+            <span class="font-bold text-indigo-800 block mb-1">3. 순서와 위계(Order)의 렌즈</span>
+            <p class="text-indigo-900">${(l.order || [])[0] || ''}</p>
+          </div>
+        </div>
+      `;
+    } else if (tabName === 'interventions') {
+      const items = this.questions.interventions || [];
+      container.innerHTML = `
+        <div class="space-y-2">
+          ${items.map(it => `
+            <div class="border border-slate-200 rounded-lg p-2 bg-white shadow-2xs">
+              <span class="font-bold text-blue-700 block mb-0.5">✦ ${it.title}</span>
+              <p class="text-slate-600 leading-relaxed">${it.guide}</p>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    } else if (tabName === 'templates') {
+      container.innerHTML = `
+        <div class="space-y-2">
+          <p class="text-slate-500 text-[11px]">주제에 맞는 템플릿을 선택하면 보드에 요소가 자동 배치됩니다.</p>
+          ${this.templates.map(tpl => `
+            <div class="border border-slate-200 hover:border-blue-400 p-2 rounded-lg bg-white cursor-pointer transition" data-template-id="${tpl.id}">
+              <div class="flex items-center justify-between mb-1">
+                <span class="font-bold text-slate-800">${tpl.title}</span>
+                <span class="text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-bold">${tpl.elements.length}개 요소</span>
+              </div>
+              <p class="text-slate-500 text-[11px]">${tpl.description}</p>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+  }
+
+  bindEvents() {
+    const toggleBtn = this.container.querySelector('#guideToggleBtn');
+    const header = this.container.querySelector('#guideHeader');
+    const body = this.container.querySelector('#guideBody');
+
+    const toggle = () => {
+      body.classList.toggle('hidden');
+      toggleBtn.textContent = body.classList.contains('hidden') ? '▲' : '▼';
+    };
+
+    toggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggle();
+    });
+    header.addEventListener('click', toggle);
+
+    // Stage Next/Prev
+    this.container.querySelector('#btnNextStage')?.addEventListener('click', () => {
+      const cur = this.state.session.stage || 0;
+      if (cur < this.stages.length - 1) {
+        this.authority.dispatch({
+          t: 'session.patch',
+          patch: { stage: cur + 1 }
+        });
+      }
+    });
+
+    this.container.querySelector('#btnPrevStage')?.addEventListener('click', () => {
+      const cur = this.state.session.stage || 0;
+      if (cur > 0) {
+        this.authority.dispatch({
+          t: 'session.patch',
+          patch: { stage: cur - 1 }
+        });
+      }
+    });
+
+    // Tab buttons
+    this.container.querySelectorAll('.guide-tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        this.container.querySelectorAll('.guide-tab-btn').forEach(b => {
+          b.classList.remove('bg-white', 'text-blue-700', 'shadow-2xs');
+          b.classList.add('text-slate-600');
+        });
+        btn.classList.add('bg-white', 'text-blue-700', 'shadow-2xs');
+        btn.classList.remove('text-slate-600');
+        this.renderTabContent(btn.getAttribute('data-tab'));
+      });
+    });
+
+    // Template item click delegation
+    this.container.addEventListener('click', (e) => {
+      const tplItem = e.target.closest('[data-template-id]');
+      if (tplItem) {
+        const tplId = tplItem.getAttribute('data-template-id');
+        const tpl = this.templates.find(t => t.id === tplId);
+        if (tpl && confirm(`'${tpl.title}' 템플릿을 보드에 불러오시겠습니까? 기존 배치는 초기화됩니다.`)) {
+          const newFigs = {};
+          tpl.elements.forEach((el, idx) => {
+            const id = `fig-${Date.now()}-${idx}`;
+            newFigs[id] = {
+              id,
+              label: el.label,
+              shape: el.shape || 'circle',
+              color: el.color || '#3B82F6',
+              size: el.size || 'M',
+              x: el.x,
+              y: el.y,
+              angle: el.angle || 0,
+              zone: el.zone || 'table',
+              locked: false,
+              perspectiveNote: '',
+              tags: [],
+              sentences: [],
+              released: false,
+              rev: 1
+            };
+          });
+
+          this.authority.dispatch({
+            t: 'session.patch',
+            patch: {
+              templateId: tplId,
+              figures: newFigs,
+              links: {}
+            }
+          });
+        }
+      }
+    });
+  }
+}
+
+    // Safety & Ethics Protocols (Spec 3.4 F1 ~ F5)
+class SafetyController {
+  constructor(sessionState, hostAuthority) {
+    this.state = sessionState;
+    this.authority = hostAuthority;
+    this.initModals();
+    this.bindEvents();
+  }
+
+  initModals() {
+    // 1. Consent Modal
+    const consentContainer = document.createElement('div');
+    consentContainer.id = 'consentModalOverlay';
+    consentContainer.className = 'fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4';
+    consentContainer.innerHTML = `
+      <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
+        <div class="flex items-center space-x-2 pb-3 border-b border-slate-100">
+          <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-base">
+            🛡️
+          </div>
+          <div>
+            <h2 class="font-bold text-slate-900 text-base">1:1 테이블 컨스텔레이션 안전 동의</h2>
+            <p class="text-[11px] text-slate-500">안전하고 존중받는 세션을 위한 기본 원칙</p>
+          </div>
+        </div>
+
+        <div class="py-4 space-y-3 text-xs text-slate-600 leading-relaxed">
+          <div class="p-3 bg-blue-50/60 rounded-xl border border-blue-100">
+            <p class="font-semibold text-blue-900 mb-1">1. 코칭 전문 도구 안내</p>
+            <p>본 시스템은 내면의 관계 구조를 시각화하는 코칭 도구이며, 의료적 심리치료나 정신과적 진단을 대신하지 않습니다.</p>
+          </div>
+
+          <div class="p-3 bg-amber-50/60 rounded-xl border border-amber-100">
+            <p class="font-semibold text-amber-900 mb-1">2. 언제든 멈출 권리 (일시정지)</p>
+            <p>작업 도중 마음에 긴장이나 불편감이 올라올 경우 언제든지 상단의 [일시정지] 버튼을 눌러 작업을 멈추거나 중단할 수 있습니다.</p>
+          </div>
+
+          <div class="p-3 bg-emerald-50/60 rounded-xl border border-emerald-100">
+            <p class="font-semibold text-emerald-900 mb-1">3. 철저한 비밀 보장 (P2P)</p>
+            <p>두 분의 브라우저 사이에 암호화된 직접 통신으로만 연결되며, 서버에 어떠한 세션 데이터나 개인정보도 저장되지 않습니다.</p>
+          </div>
+
+          <div class="p-2.5 bg-rose-50/50 rounded-xl border border-rose-100 text-[11px] text-rose-800">
+            <span class="font-bold">⚠️ 위기 지원 안내:</span> 극심한 정서적 위기나 자해 생각이 있으신 경우 작업을 중단하고 즉시 전문 상담전화(<span class="font-bold underline">109</span> 또는 <span class="font-bold underline">1577-0199</span>)로 도움을 요청하세요.
+          </div>
+        </div>
+
+        <div class="pt-3 border-t border-slate-100 flex flex-col space-y-3">
+          <label class="flex items-center space-x-2 text-xs font-semibold text-slate-800 cursor-pointer select-none">
+            <input type="checkbox" id="consentCheckbox" class="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300"/>
+            <span>위 안내 사항을 모두 확인하였으며, 이에 동의합니다.</span>
+          </label>
+          <button id="btnEnterSession" disabled class="w-full py-2.5 bg-slate-300 text-slate-500 font-bold text-xs rounded-xl transition cursor-not-allowed">
+            보드 입장하기
+          </button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(consentContainer);
+
+    // 2. Pause Overlay
+    const pauseContainer = document.createElement('div');
+    pauseContainer.id = 'pauseModalOverlay';
+    pauseContainer.className = 'fixed inset-0 bg-slate-900/80 backdrop-blur-md flex items-center justify-center z-50 p-4 hidden';
+    pauseContainer.innerHTML = `
+      <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 text-center animate-in fade-in zoom-in-95 duration-200">
+        <div class="w-16 h-16 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-2xl mx-auto mb-4 animate-pulse">
+          ⏸️
+        </div>
+        <h3 class="font-bold text-slate-900 text-lg mb-2">세션이 일시정지되었습니다</h3>
+        <p class="text-xs text-slate-600 mb-6 leading-relaxed">
+          잠시 호흡을 고르고 마음을 편안히 가다듬는 시간입니다.<br/>
+          발바닥의 감각을 느끼며 세 번 천천히 깊은 호흡을 쉬어 보세요.
+        </p>
+        <button id="btnResumeSession" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition">
+          작업 계속하기
+        </button>
+      </div>
+    `;
+    document.body.appendChild(pauseContainer);
+
+    // 3. De-roling Wizard Modal
+    const derolingContainer = document.createElement('div');
+    derolingContainer.id = 'derolingModalOverlay';
+    derolingContainer.className = 'fixed inset-0 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center z-50 p-4 hidden';
+    derolingContainer.innerHTML = `
+      <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+          <div class="flex items-center space-x-2">
+            <span class="text-xl">🕊️</span>
+            <h3 class="font-bold text-slate-900 text-sm">역할 해제(De-roling) 및 그라운딩 의식</h3>
+          </div>
+          <button id="btnCloseDeroling" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+        </div>
+
+        <div class="space-y-4 text-xs text-slate-700" id="derolingWizardBody">
+          <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+            <span class="font-bold text-blue-700 block mb-1">1단계: 상징적 도구로 되돌리기</span>
+            <p class="text-slate-600 leading-relaxed mb-3">
+              테이블 위의 피규어들은 고객님의 내면을 비추어 준 소중한 도구였습니다.<br/>
+              이제 투사되었던 역할에서 벗어나 단순한 사물로 돌아갑니다.
+            </p>
+            <button id="btnReleaseAllFigures" class="px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 font-bold rounded-lg transition">
+              ✨ 모든 피규어 역할 해제 및 보류 존 이동
+            </button>
+          </div>
+
+          <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+            <span class="font-bold text-emerald-700 block mb-1">2단계: 현실 그라운딩 (Grounding)</span>
+            <ul class="list-disc list-inside space-y-1 text-slate-600">
+              <li>발바닥이 바닥에 닿아 있는 단단한 감각을 느껴봅니다.</li>
+              <li>깊은 호흡을 세 번 천천히 들이쉬고 내쉽니다.</li>
+              <li>지금 방 안에서 보이는 사물 3가지의 이름을 속으로 불러봅니다.</li>
+            </ul>
+          </div>
+
+          <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+            <span class="font-bold text-indigo-700 block mb-1">3단계: 내일의 가장 작은 실천 과제</span>
+            <textarea id="derolingCommitmentInput" rows="2" placeholder="오늘 발견한 통찰을 바탕으로 내일 시도할 작은 행동 하나를 적어보세요..." 
+                      class="w-full mt-1.5 p-2.5 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-indigo-500"></textarea>
+          </div>
+        </div>
+
+        <div class="pt-4 mt-4 border-t border-slate-100 flex items-center justify-end space-x-2">
+          <button id="btnCompleteDeroling" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-xs rounded-xl shadow-md transition">
+            마무리 및 리포트 저장
+          </button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(derolingContainer);
+
+    // 4. Crisis Modal
+    const crisisContainer = document.createElement('div');
+    crisisContainer.id = 'crisisModalOverlay';
+    crisisContainer.className = 'fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 hidden';
+    crisisContainer.innerHTML = `
+      <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-6 text-center animate-in fade-in zoom-in-95 duration-200">
+        <div class="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center text-xl mx-auto mb-3">
+          📞
+        </div>
+        <h3 class="font-bold text-slate-900 text-base mb-2">위기 상담 및 긴급 지원</h3>
+        <p class="text-xs text-slate-600 mb-4 leading-relaxed">
+          혼자 감당하기 어려운 마음의 고통이 있다면 24시간 언제든 전문가의 도움을 받으실 수 있습니다.
+        </p>
+        <div class="space-y-2 text-xs mb-5">
+          <div class="p-2.5 bg-rose-50 border border-rose-200 rounded-xl flex items-center justify-between">
+            <span class="font-bold text-rose-900">자살예방 상담전화</span>
+            <a href="tel:109" class="font-mono font-bold text-rose-600 bg-white px-2 py-0.5 rounded border border-rose-200">109</a>
+          </div>
+          <div class="p-2.5 bg-blue-50 border border-blue-200 rounded-xl flex items-center justify-between">
+            <span class="font-bold text-blue-900">정신건강 위기상담전화</span>
+            <a href="tel:1577-0199" class="font-mono font-bold text-blue-600 bg-white px-2 py-0.5 rounded border border-blue-200">1577-0199</a>
+          </div>
+        </div>
+        <button id="btnCloseCrisis" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition">
+          닫기
+        </button>
+      </div>
+    `;
+    document.body.appendChild(crisisContainer);
+  }
+
+  bindEvents() {
+    // Consent Agreement
+    const consentCb = document.getElementById('consentCheckbox');
+    const enterBtn = document.getElementById('btnEnterSession');
+    const consentModal = document.getElementById('consentModalOverlay');
+
+    consentCb?.addEventListener('change', () => {
+      if (consentCb.checked) {
+        enterBtn.disabled = false;
+        enterBtn.className = 'w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition cursor-pointer';
+      } else {
+        enterBtn.disabled = true;
+        enterBtn.className = 'w-full py-2.5 bg-slate-300 text-slate-500 font-bold text-xs rounded-xl transition cursor-not-allowed';
+      }
+    });
+
+    enterBtn?.addEventListener('click', () => {
+      consentModal.classList.add('hidden');
+      const role = this.state.role;
+      const patchConsent = { ...this.state.session.consent, [role]: true };
+      this.authority.dispatch({
+        t: 'session.patch',
+        patch: { consent: patchConsent }
+      });
+    });
+
+    // Pause Resume
+    const pauseModal = document.getElementById('pauseModalOverlay');
+    const resumeBtn = document.getElementById('btnResumeSession');
+    resumeBtn?.addEventListener('click', () => {
+      this.authority.dispatch({
+        t: 'session.patch',
+        patch: { paused: false }
+      });
+    });
+
+    // Deroling Close & Release All
+    const derolingModal = document.getElementById('derolingModalOverlay');
+    document.getElementById('btnCloseDeroling')?.addEventListener('click', () => {
+      derolingModal.classList.add('hidden');
+    });
+
+    document.getElementById('btnReleaseAllFigures')?.addEventListener('click', () => {
+      const figs = this.state.session.figures;
+      for (const [id, f] of Object.entries(figs)) {
+        this.authority.dispatch({
+          t: 'fig.patch',
+          id,
+          patch: { released: true, zone: 'waiting', y: 880 }
+        });
+      }
+      alert('모든 피규어의 역할이 해제되어 보류 존으로 이동했습니다.');
+    });
+
+    document.getElementById('btnCompleteDeroling')?.addEventListener('click', () => {
+      const commitment = document.getElementById('derolingCommitmentInput').value;
+      if (commitment) {
+        this.authority.dispatch({
+          t: 'session.patch',
+          patch: { commitment }
+        });
+      }
+      derolingModal.classList.add('hidden');
+      // Trigger report download
+      if (window.exportManager) {
+        window.exportManager.exportMarkdownReport();
+      }
+    });
+
+    // Crisis Close
+    const crisisModal = document.getElementById('crisisModalOverlay');
+    document.getElementById('btnCloseCrisis')?.addEventListener('click', () => {
+      crisisModal.classList.add('hidden');
+    });
+
+    // Listen to session state for pause toggle
+    this.state.subscribe((session, ui, changeType) => {
+      if (changeType === 'session') {
+        if (session.paused) {
+          pauseModal.classList.remove('hidden');
+        } else {
+          pauseModal.classList.add('hidden');
+        }
+      }
+    });
+  }
+
+  showPause() {
+    this.authority.dispatch({
+      t: 'session.patch',
+      patch: { paused: true }
+    });
+  }
+
+  showDeroling() {
+    document.getElementById('derolingModalOverlay').classList.remove('hidden');
+  }
+
+  showCrisis() {
+    document.getElementById('crisisModalOverlay').classList.remove('hidden');
+  }
+}
+
+    // Session Export Manager: PNG Canvas, JSON Backup/Restore, Markdown Report
+class ExportManager {
+  constructor(sessionState) {
+    this.state = sessionState;
+  }
+
+  // 1. Export High-Res PNG from SVG
+  async exportPng() {
+    const svgElem = document.getElementById('mainSvg');
+    if (!svgElem) return;
+
+    try {
+      const svgClone = svgElem.cloneNode(true);
+      // Clean up transform on clone for direct 1000x1000 export
+      const gTransform = svgClone.querySelector('#canvasTransformGroup');
+      if (gTransform) gTransform.removeAttribute('transform');
+
+      const svgData = new XMLSerializer().serializeToString(svgClone);
+      const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(svgBlob);
+
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1200;
+        canvas.height = 1200;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#F8FAFC';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        URL.revokeObjectURL(url);
+
+        canvas.toBlob((blob) => {
+          const a = document.createElement('a');
+          const dateStr = new Date().toISOString().slice(0, 10);
+          a.download = `table-constellation-${this.state.roomId}-${dateStr}.png`;
+          a.href = URL.createObjectURL(blob);
+          a.click();
+        }, 'image/png');
+      };
+      img.src = url;
+    } catch (err) {
+      console.error('PNG export failed:', err);
+      alert('이미지 내보내기 중 오류가 발생했습니다.');
+    }
+  }
+
+  // 2. Export Session JSON
+  exportJson() {
+    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(this.state.session, null, 2));
+    const a = document.createElement('a');
+    a.setAttribute('href', dataStr);
+    a.setAttribute('download', `constellation-${this.state.roomId}-backup.json`);
+    a.click();
+  }
+
+  // 3. Import Session JSON
+  importJson(file, authority) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const parsed = JSON.parse(e.target.result);
+        if (parsed && parsed.schemaVersion === 1) {
+          authority.dispatch({
+            t: 'session.patch',
+            patch: parsed
+          });
+          alert('세션 데이터를 성공적으로 불러왔습니다.');
+        } else {
+          alert('올바른 세션 JSON 파일 형식이 아닙니다.');
+        }
+      } catch (err) {
+        alert('파일을 읽는 중 오류가 발생했습니다.');
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  // 4. Export Markdown Structured Coaching Report
+  exportMarkdownReport() {
+    const s = this.state.session;
+    const dateStr = new Date().toLocaleString('ko-KR');
+
+    let md = `# [세션 리포트] 1:1 테이블 컨스텔레이션 코칭 기록\n\n`;
+    md += `> **세션 일시:** ${dateStr}  \n`;
+    md += `> **룸 ID:** \`${s.roomId}\`  \n`;
+    md += `> **진행 템플릿:** ${s.templateId}  \n\n`;
+
+    md += `## 1. 코칭 주제 및 목표 질문\n`;
+    md += `> "${s.topic || '자유 탐색'}"\n\n`;
+
+    md += `## 2. 배치된 핵심 요소 및 관점 기록\n\n`;
+    md += `| 피규어 라벨 | 형태 | 크기 | 위치(X,Y) | 시선 각도 | 상태/영역 |\n`;
+    md += `|---|---|---|---|---|---|\n`;
+
+    const figuresList = Object.values(s.figures);
+    for (const fig of figuresList) {
+      const zoneName = fig.zone === 'table' ? '테이블 위' : '보류 존(대기)';
+      md += `| **${fig.label}** | ${fig.shape} | ${fig.size} | (${fig.x}, ${fig.y}) | ${fig.angle}° | ${zoneName} |\n`;
+    }
+    md += `\n`;
+
+    md += `### 피규어별 관점 메모 (내면의 소리)\n\n`;
+    let hasNotes = false;
+    for (const fig of figuresList) {
+      if (fig.perspectiveNote || (fig.tags && fig.tags.length > 0)) {
+        hasNotes = true;
+        md += `#### ✦ ${fig.label}\n`;
+        if (fig.tags && fig.tags.length > 0) {
+          md += `- **신체감각/감정 태그:** \`${fig.tags.join('`, `')}\`\n`;
+        }
+        if (fig.perspectiveNote) {
+          md += `- **관점 메모:** "${fig.perspectiveNote}"\n`;
+        }
+        md += `\n`;
+      }
+    }
+    if (!hasNotes) {
+      md += `*작성된 관점 메모가 없습니다.*\n\n`;
+    }
+
+    md += `## 3. 세션 중 시도된 해결 문장 (Sentences)\n\n`;
+    let sentenceCount = 0;
+    for (const fig of figuresList) {
+      if (fig.sentences && fig.sentences.length > 0) {
+        for (const sent of fig.sentences) {
+          sentenceCount++;
+          md += `- **[${fig.label}를 향하여]** "${sent.text}"\n`;
+        }
+      }
+    }
+    if (sentenceCount === 0) {
+      md += `*기록된 해결 문장이 없습니다.*\n\n`;
+    }
+
+    md += `## 4. 최종 해결 이미지 및 스냅샷\n`;
+    md += `- 기록된 스냅샷 수: **${s.snapshots.length}개**\n`;
+    s.snapshots.forEach((snap, idx) => {
+      md += `  - [스냅샷 ${idx + 1}] ${snap.name} (${snap.at})\n`;
+    });
+    md += `\n`;
+
+    md += `## 5. 일상에서의 실천 과제 (Commitment)\n`;
+    md += `> "${s.commitment || '자유로운 일상 복귀 및 관찰'}"\n\n`;
+
+    md += `---\n`;
+    md += `*본 리포트는 개인정보 보호 원칙에 따라 서버에 저장되지 않고 사용자 로컬에 직접 생성되었습니다.*\n`;
+
+    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `table-constellation-report-${s.roomId}-${new Date().toISOString().slice(0, 10)}.md`;
+    a.click();
+  }
+}
+
+    
+class App {
+  constructor() {
+    this.roomId = null;
+    this.role = 'coach'; // Default to coach if creating room
+    this.sync = null;
+    this.state = null;
+    this.authority = null;
+    this.board = null;
+    this.guide = null;
+    this.safety = null;
+    this.exporter = null;
+  }
+
+  async init() {
+    await i18n.init();
+    this.parseRoute();
+
+    // Initialize state & sync
+    this.state = new SessionState(this.roomId, this.role);
+    this.sync = new PeerJsAdapter();
+    this.authority = new HostAuthority(this.state, this.sync);
+    this.exporter = new ExportManager(this.state);
+    window.exportManager = this.exporter;
+
+    // Connect to P2P network
+    this.sync.connect(this.roomId, this.role);
+
+    // Render Main UI Layout
+    this.renderLayout();
+
+    // Mount Board Canvas
+    const canvasContainer = document.getElementById('canvasMount');
+    this.board = new BoardCanvas(canvasContainer, this.state, this.authority);
+
+    // Mount Coach Guide Panel (renders only if coach!)
+    const guideContainer = document.getElementById('guideMount');
+    this.guide = new GuideController(guideContainer, this.state, this.authority);
+
+    // Mount Safety Protocols
+    this.safety = new SafetyController(this.state, this.authority);
+
+    // Bind UI Events
+    this.bindTopBarEvents();
+    this.bindPaletteEvents();
+    this.bindInspectorEvents();
+    this.bindTimelineEvents();
+    this.setupSyncStatusListener();
+  }
+
+  parseRoute() {
+    const hash = window.location.hash || '';
+    // Format: #/room/<roomId>?role=client or #/room/<roomId>
+    const match = hash.match(/#\/room\/([a-zA-Z0-9_-]+)/);
+
+    if (match && match[1]) {
+      this.roomId = match[1];
+      const params = new URLSearchParams(window.location.hash.split('?')[1] || '');
+      this.role = params.get('role') === 'client' ? 'client' : 'coach';
+    } else {
+      // Generate new room as coach
+      this.roomId = Math.random().toString(36).substring(2, 9);
+      this.role = 'coach';
+      window.location.hash = `#/room/${this.roomId}`;
+    }
+  }
+
+  renderLayout() {
+    const appElem = document.getElementById('app');
+    appElem.innerHTML = `
+      <div class="h-screen w-screen flex flex-col bg-slate-50 text-slate-800 antialiased select-none overflow-hidden">
+        
+        <!-- ================= TOP HEADER ================= -->
+        <header class="bg-white border-b border-slate-200 shadow-2xs z-30 shrink-0 px-4 py-2 flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <div class="flex items-center space-x-2">
+              <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-xs">
+                TC
+              </div>
+              <div>
+                <h1 class="font-bold text-sm text-slate-900 leading-tight">1:1 테이블 컨스텔레이션</h1>
+                <p class="text-[10px] text-slate-500">Systemic & Constructionist Table Board</p>
+              </div>
+            </div>
+
+            <!-- Role Badge -->
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${this.role === 'coach' ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}">
+              ${this.role === 'coach' ? '👑 코치 (호스트)' : '🌱 고객 (게스트)'}
+            </span>
+
+            <!-- Connection Status -->
+            <div class="flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200" id="statusBadge">
+              <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse" id="statusDot"></span>
+              <span id="statusText">룸 연결 중...</span>
+            </div>
+
+            <!-- Room ID & Invite Copy -->
+            <button id="btnCopyInvite" class="flex items-center space-x-1 px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs rounded-lg border border-slate-200 transition">
+              <span>📋 고객 초대 링크 복사</span>
+            </button>
+          </div>
+
+          <!-- Center: Topic Input Bar -->
+          <div class="flex-1 max-w-md mx-4">
+            <div class="relative flex items-center">
+              <span class="absolute left-3 text-slate-400 text-xs">🎯</span>
+              <input type="text" id="topicInput" placeholder="오늘의 코칭 질문/주제를 한 문장으로 입력하세요..." 
+                     class="w-full text-xs font-semibold pl-8 pr-3 py-1.5 rounded-xl bg-slate-100/80 border border-slate-200 focus:outline-none focus:bg-white focus:border-blue-500 transition"/>
+            </div>
+          </div>
+
+          <!-- Right Action Controls -->
+          <div class="flex items-center space-x-2">
+            <!-- Table Skin Switcher -->
+            <select id="skinSelect" class="text-xs bg-slate-100 border border-slate-200 rounded-lg px-2 py-1.5 font-medium text-slate-700 focus:outline-none">
+              <option value="round_wood">🪵 원목 원형 테이블</option>
+              <option value="square_areca">🌿 사각 아레카 테이블</option>
+              <option value="plate_basic">⚪ 기본 원형 테이블</option>
+              <option value="default">📐 미니멀 SVG 테이블</option>
+            </select>
+
+            <!-- Undo / Redo -->
+            <div class="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200">
+              <button id="btnUndo" class="p-1.5 text-slate-600 hover:text-slate-900 rounded" title="실행 취소">↶</button>
+              <button id="btnRedo" class="p-1.5 text-slate-600 hover:text-slate-900 rounded" title="다시 실행">↷</button>
+            </div>
+
+            <!-- Export Buttons -->
+            <button id="btnExportPng" class="px-2.5 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-lg text-xs font-medium shadow-2xs flex items-center space-x-1" title="PNG 이미지 저장">
+              <span>📷 PNG</span>
+            </button>
+            <button id="btnExportReport" class="px-2.5 py-1.5 bg-white hover:bg-slate-50 text-blue-700 border border-blue-200 rounded-lg text-xs font-medium shadow-2xs flex items-center space-x-1" title="세션 리포트 다운로드">
+              <span>📝 리포트</span>
+            </button>
+
+            <!-- Emergency Pause & Finish -->
+            <button id="btnPause" class="px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-lg text-xs font-bold transition flex items-center space-x-1">
+              <span>⏸️ 일시정지</span>
+            </button>
+            <button id="btnFinishSession" class="px-3 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg text-xs font-bold shadow-xs transition flex items-center space-x-1">
+              <span>🕊️ 마무리</span>
+            </button>
+          </div>
+        </header>
+
+        <!-- ================= MAIN WORKSPACE ================= -->
+        <div class="flex-1 flex overflow-hidden relative">
+          
+          <!-- LEFT: Figure Palette & Zone Shelf -->
+          <aside class="w-64 bg-white border-r border-slate-200 shadow-2xs z-20 flex flex-col shrink-0">
+            <div class="p-3 border-b border-slate-100 flex items-center justify-between">
+              <span class="font-bold text-xs text-slate-800">피규어 팔레트</span>
+              <span class="text-[10px] text-slate-400">클릭하여 추가</span>
+            </div>
+
+            <!-- Tabs: Abstract SVG vs Physical Image Skins -->
+            <div class="px-3 pt-2">
+              <div class="flex items-center bg-slate-100 p-0.5 rounded-lg text-[11px] font-semibold">
+                <button id="paletteTabSvg" class="flex-1 py-1 rounded-md bg-white text-blue-700 shadow-2xs">추상 피규어</button>
+                <button id="paletteTabImg" class="flex-1 py-1 rounded-md text-slate-600">구슬·크리스탈</button>
+              </div>
+            </div>
+
+            <!-- Palette Content -->
+            <div class="flex-1 overflow-y-auto p-3 space-y-4">
+              <!-- SVG Abstract Figures -->
+              <div id="paletteSvgSection" class="space-y-3">
+                <div class="grid grid-cols-3 gap-2">
+                  <button class="palette-item flex flex-col items-center p-2 rounded-xl border border-slate-200 hover:border-blue-500 hover:bg-blue-50/40 transition" data-shape="person">
+                    <span class="text-2xl mb-1">👤</span>
+                    <span class="text-[11px] font-semibold text-slate-700">사람형</span>
+                  </button>
+                  <button class="palette-item flex flex-col items-center p-2 rounded-xl border border-slate-200 hover:border-blue-500 hover:bg-blue-50/40 transition" data-shape="circle">
+                    <span class="text-2xl mb-1">🔘</span>
+                    <span class="text-[11px] font-semibold text-slate-700">원형</span>
+                  </button>
+                  <button class="palette-item flex flex-col items-center p-2 rounded-xl border border-slate-200 hover:border-blue-500 hover:bg-blue-50/40 transition" data-shape="square">
+                    <span class="text-2xl mb-1">⏹️</span>
+                    <span class="text-[11px] font-semibold text-slate-700">사각형</span>
+                  </button>
+                  <button class="palette-item flex flex-col items-center p-2 rounded-xl border border-slate-200 hover:border-blue-500 hover:bg-blue-50/40 transition" data-shape="star">
+                    <span class="text-2xl mb-1">⭐</span>
+                    <span class="text-[11px] font-semibold text-slate-700">별(목표)</span>
+                  </button>
+                  <button class="palette-item flex flex-col items-center p-2 rounded-xl border border-slate-200 hover:border-blue-500 hover:bg-blue-50/40 transition" data-shape="diamond">
+                    <span class="text-2xl mb-1">💎</span>
+                    <span class="text-[11px] font-semibold text-slate-700">가치(자원)</span>
+                  </button>
+                  <button class="palette-item flex flex-col items-center p-2 rounded-xl border border-slate-200 hover:border-blue-500 hover:bg-blue-50/40 transition" data-shape="observer">
+                    <span class="text-2xl mb-1">👁️</span>
+                    <span class="text-[11px] font-semibold text-slate-700">관찰자</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Physical 3D Ball & Crystal Skins -->
+              <div id="paletteImgSection" class="hidden grid grid-cols-3 gap-2">
+                <button class="palette-img-item flex flex-col items-center p-2 rounded-xl border border-slate-200 hover:border-blue-500 hover:bg-blue-50/40 transition" data-img="./assets/figures/fig_ball_me.png" data-label="나(Me)">
+                  <img src="./assets/figures/fig_ball_me.png" class="w-10 h-10 object-contain mb-1" />
+                  <span class="text-[10px] font-bold text-slate-700">나(Me)</span>
+                </button>
+                <button class="palette-img-item flex flex-col items-center p-2 rounded-xl border border-slate-200 hover:border-blue-500 hover:bg-blue-50/40 transition" data-img="./assets/figures/fig_ball_01.png" data-label="구슬 1">
+                  <img src="./assets/figures/fig_ball_01.png" class="w-10 h-10 object-contain mb-1" />
+                  <span class="text-[10px] font-bold text-slate-700">구슬 1</span>
+                </button>
+                <button class="palette-img-item flex flex-col items-center p-2 rounded-xl border border-slate-200 hover:border-blue-500 hover:bg-blue-50/40 transition" data-img="./assets/figures/fig_ball_02.png" data-label="구슬 2">
+                  <img src="./assets/figures/fig_ball_02.png" class="w-10 h-10 object-contain mb-1" />
+                  <span class="text-[10px] font-bold text-slate-700">구슬 2</span>
+                </button>
+                <button class="palette-img-item flex flex-col items-center p-2 rounded-xl border border-slate-200 hover:border-blue-500 hover:bg-blue-50/40 transition" data-img="./assets/figures/fig_ball_03.png" data-label="구슬 3">
+                  <img src="./assets/figures/fig_ball_03.png" class="w-10 h-10 object-contain mb-1" />
+                  <span class="text-[10px] font-bold text-slate-700">구슬 3</span>
+                </button>
+                <button class="palette-img-item flex flex-col items-center p-2 rounded-xl border border-slate-200 hover:border-blue-500 hover:bg-blue-50/40 transition" data-img="./assets/figures/fig_crystal_red.png" data-label="레드 크리스탈">
+                  <img src="./assets/figures/fig_crystal_red.png" class="w-10 h-10 object-contain mb-1" />
+                  <span class="text-[10px] font-bold text-slate-700">크리스탈</span>
+                </button>
+                <button class="palette-img-item flex flex-col items-center p-2 rounded-xl border border-slate-200 hover:border-blue-500 hover:bg-blue-50/40 transition" data-img="./assets/figures/fig_sphere_blue.png" data-label="블루 스피어">
+                  <img src="./assets/figures/fig_sphere_blue.png" class="w-10 h-10 object-contain mb-1" />
+                  <span class="text-[10px] font-bold text-slate-700">블루 구</span>
+                </button>
+              </div>
+
+              <!-- Tools: Link tool & Grid snap -->
+              <div class="pt-3 border-t border-slate-100 space-y-2">
+                <span class="font-bold text-[11px] text-slate-500 block">보드 도구</span>
+                <button id="btnToolLink" class="w-full py-1.5 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl flex items-center justify-center space-x-1.5 transition">
+                  <span>↗️ 두 피규어 관계선 잇기</span>
+                </button>
+                <label class="flex items-center space-x-2 text-xs text-slate-600 cursor-pointer pt-1">
+                  <input type="checkbox" id="cbSnapGrid" class="rounded text-blue-600 focus:ring-blue-500 border-slate-300"/>
+                  <span>격자 스냅 맞춤</span>
+                </label>
+              </div>
+            </div>
+          </aside>
+
+          <!-- CENTER: 2D Interactive Board Canvas Mount -->
+          <main class="flex-1 relative overflow-hidden bg-slate-100/60" id="canvasMount">
+            <!-- BoardCanvas injects SVG here -->
+          </main>
+
+          <!-- RIGHT: Selected Figure Inspector Panel -->
+          <aside class="w-80 bg-white border-l border-slate-200 shadow-2xs z-20 flex flex-col shrink-0" id="inspectorPanel">
+            <div class="p-3 border-b border-slate-100 flex items-center justify-between">
+              <span class="font-bold text-xs text-slate-800">선택된 피규어 속성</span>
+              <span id="inspectorFigId" class="font-mono text-[10px] text-slate-400">선택 없음</span>
+            </div>
+
+            <!-- Inspector Form (Empty state vs Selected state) -->
+            <div id="inspectorEmptyState" class="flex-1 flex flex-col items-center justify-center p-6 text-center text-slate-400">
+              <span class="text-3xl mb-2">🎯</span>
+              <p class="text-xs font-medium">테이블이나 보류 존의<br/>피규어를 클릭하세요.</p>
+            </div>
+
+            <div id="inspectorActiveState" class="hidden flex-1 overflow-y-auto p-4 space-y-4 text-xs text-slate-700">
+              <!-- Label Input -->
+              <div>
+                <label class="font-bold text-slate-800 block mb-1">피규어 이름 (최대 20자)</label>
+                <input type="text" id="propLabel" maxlength="20" class="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-semibold focus:outline-none focus:border-blue-500"/>
+              </div>
+
+              <!-- Size (S / M / L) -->
+              <div>
+                <label class="font-bold text-slate-800 block mb-1">크기</label>
+                <div class="flex items-center space-x-2">
+                  <button class="prop-size-btn flex-1 py-1 rounded-lg border border-slate-200 font-bold" data-size="S">S (소)</button>
+                  <button class="prop-size-btn flex-1 py-1 rounded-lg border border-slate-200 font-bold" data-size="M">M (중)</button>
+                  <button class="prop-size-btn flex-1 py-1 rounded-lg border border-slate-200 font-bold" data-size="L">L (대)</button>
+                </div>
+              </div>
+
+              <!-- Color Palette -->
+              <div>
+                <label class="font-bold text-slate-800 block mb-1">색상</label>
+                <div class="flex items-center space-x-1.5 flex-wrap gap-y-1.5" id="colorPaletteContainer">
+                  <!-- Injected via JS -->
+                </div>
+              </div>
+
+              <!-- Gaze Rotation -->
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <label class="font-bold text-slate-800">시선 방향 (각도)</label>
+                  <span id="propAngleVal" class="font-mono font-bold text-blue-600">0°</span>
+                </div>
+                <input type="range" id="propAngleRange" min="0" max="359" class="w-full accent-blue-600"/>
+                <span class="text-[10px] text-slate-400">단축키: 선택 후 Q (좌회전) / E (우회전)</span>
+              </div>
+
+              <!-- Perspective Note ("이 자리에서 본 세상") -->
+              <div class="pt-2 border-t border-slate-100">
+                <label class="font-bold text-slate-800 block mb-1">
+                  👁️ 관점 메모 <span class="font-normal text-[11px] text-slate-500">(이 피규어의 시선)</span>
+                </label>
+                <textarea id="propPerspectiveNote" rows="3" placeholder="이 피규어의 자리에 서면 세상이 어떻게 보이고 무엇이 필요한가요?" 
+                          class="w-full p-2.5 border border-slate-200 rounded-lg text-xs leading-relaxed focus:outline-none focus:border-blue-500"></textarea>
+              </div>
+
+              <!-- Sensory & Emotion Tags -->
+              <div>
+                <label class="font-bold text-slate-800 block mb-1">신체감각 / 감정 태그</label>
+                <div class="flex flex-wrap gap-1 mb-2" id="tagsListContainer"></div>
+                <div class="flex items-center space-x-1">
+                  <input type="text" id="newTagInput" placeholder="새 태그..." class="flex-1 px-2 py-1 border border-slate-200 rounded-md text-xs"/>
+                  <button id="btnAddTag" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 font-bold rounded-md">추가</button>
+                </div>
+              </div>
+
+              <!-- Sentence Card Trial -->
+              <div class="pt-2 border-t border-slate-100">
+                <label class="font-bold text-slate-800 block mb-1">💬 시도해 본 해결 문장</label>
+                <div class="space-y-1.5 mb-2" id="sentencesContainer"></div>
+                <div class="flex items-center space-x-1">
+                  <input type="text" id="newSentenceInput" placeholder="이 피규어를 향해 건넬 문장..." class="flex-1 px-2 py-1 border border-slate-200 rounded-md text-xs"/>
+                  <button id="btnAddSentence" class="px-2.5 py-1 bg-blue-50 text-blue-700 font-bold rounded-md">등록</button>
+                </div>
+              </div>
+
+              <!-- Actions: Zone Toggle & Delete -->
+              <div class="pt-3 border-t border-slate-100 flex items-center space-x-2">
+                <button id="btnToggleZone" class="flex-1 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg transition">
+                  보류 존 이동
+                </button>
+                <button id="btnDeleteFig" class="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold rounded-lg transition">
+                  삭제
+                </button>
+              </div>
+            </div>
+          </aside>
+
+        </div>
+
+        <!-- ================= BOTTOM SNAPSHOT TIMELINE ================= -->
+        <footer class="bg-white border-t border-slate-200 px-4 py-2 flex items-center justify-between z-30 shrink-0 h-16">
+          <div class="flex items-center space-x-2">
+            <span class="font-bold text-xs text-slate-800">📸 스냅샷 타임라인</span>
+            <button id="btnTakeSnapshot" class="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs rounded-lg border border-blue-200 flex items-center space-x-1">
+              <span>+ 현재 배치 저장</span>
+            </button>
+          </div>
+
+          <!-- Timeline Snapshots Strip -->
+          <div class="flex-1 flex items-center space-x-2 overflow-x-auto px-4" id="snapshotStrip">
+            <span class="text-xs text-slate-400 italic">저장된 스냅샷이 없습니다. 중요한 순간에 스냅샷을 남겨보세요.</span>
+          </div>
+
+          <div class="text-[11px] text-slate-400">
+            <span>💡 휠: 줌 확대/축소 | Alt+드래그: 화면 이동</span>
+          </div>
+        </footer>
+
+        <!-- Coach Guide Panel Mount (Floating) -->
+        <div id="guideMount"></div>
+
+      </div>
+    `;
+  }
+
+  setupSyncStatusListener() {
+    const badge = document.getElementById('statusBadge');
+    const dot = document.getElementById('statusDot');
+    const text = document.getElementById('statusText');
+
+    this.sync.onStatusChange((status, msg) => {
+      if (!badge || !dot || !text) return;
+      text.textContent = msg || status;
+
+      switch (status) {
+        case 'connected':
+          badge.className = 'flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200';
+          dot.className = 'w-2 h-2 rounded-full bg-emerald-500';
+          break;
+        case 'waiting':
+        case 'connecting':
+          badge.className = 'flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200';
+          dot.className = 'w-2 h-2 rounded-full bg-amber-500 animate-pulse';
+          break;
+        case 'disconnected':
+        case 'error':
+          badge.className = 'flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-rose-50 text-rose-700 border border-rose-200';
+          dot.className = 'w-2 h-2 rounded-full bg-rose-500';
+          break;
+      }
+    });
+  }
+
+  bindTopBarEvents() {
+    // Copy Invite Link
+    document.getElementById('btnCopyInvite')?.addEventListener('click', () => {
+      const clientUrl = `${window.location.origin}${window.location.pathname}#/room/${this.roomId}?role=client`;
+      navigator.clipboard.writeText(clientUrl).then(() => {
+        alert(`고객 전용 초대 링크가 복사되었습니다:\n${clientUrl}`);
+      });
+    });
+
+    // Topic Input
+    const topicInput = document.getElementById('topicInput');
+    topicInput?.addEventListener('change', () => {
+      this.authority.dispatch({
+        t: 'session.patch',
+        patch: { topic: topicInput.value }
+      });
+    });
+
+    // Table Skin
+    const skinSelect = document.getElementById('skinSelect');
+    skinSelect?.addEventListener('change', () => {
+      this.authority.dispatch({
+        t: 'session.patch',
+        patch: { tableSkin: skinSelect.value }
+      });
+    });
+
+    // Undo / Redo
+    document.getElementById('btnUndo')?.addEventListener('click', () => this.state.undo());
+    document.getElementById('btnRedo')?.addEventListener('click', () => this.state.redo());
+
+    // Export Buttons
+    document.getElementById('btnExportPng')?.addEventListener('click', () => this.exporter.exportPng());
+    document.getElementById('btnExportReport')?.addEventListener('click', () => this.exporter.exportMarkdownReport());
+
+    // Pause & Finish
+    document.getElementById('btnPause')?.addEventListener('click', () => this.safety.showPause());
+    document.getElementById('btnFinishSession')?.addEventListener('click', () => this.safety.showDeroling());
+
+    // Sync session updates to top bar
+    this.state.subscribe((session, ui, changeType) => {
+      if (changeType === 'session') {
+        if (topicInput && document.activeElement !== topicInput) {
+          topicInput.value = session.topic || '';
+        }
+        if (skinSelect) {
+          skinSelect.value = session.tableSkin || 'round_wood';
+        }
+      }
+    });
+  }
+
+  bindPaletteEvents() {
+    // Tab switching: Abstract SVG vs Physical Image Skins
+    const tabSvg = document.getElementById('paletteTabSvg');
+    const tabImg = document.getElementById('paletteTabImg');
+    const secSvg = document.getElementById('paletteSvgSection');
+    const secImg = document.getElementById('paletteImgSection');
+
+    tabSvg?.addEventListener('click', () => {
+      tabSvg.className = 'flex-1 py-1 rounded-md bg-white text-blue-700 shadow-2xs';
+      tabImg.className = 'flex-1 py-1 rounded-md text-slate-600';
+      secSvg.classList.remove('hidden');
+      secImg.classList.add('hidden');
+    });
+
+    tabImg?.addEventListener('click', () => {
+      tabImg.className = 'flex-1 py-1 rounded-md bg-white text-blue-700 shadow-2xs';
+      tabSvg.className = 'flex-1 py-1 rounded-md text-slate-600';
+      secImg.classList.remove('hidden');
+      secSvg.classList.add('hidden');
+    });
+
+    // Add Abstract SVG Figure
+    document.querySelectorAll('.palette-item').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const shape = btn.getAttribute('data-shape');
+        const id = `fig-${Date.now()}`;
+        const defaultNames = {
+          person: '사람',
+          circle: '요소',
+          square: '상황',
+          star: '목표',
+          diamond: '자원',
+          observer: '관찰자'
+        };
+
+        this.authority.dispatch({
+          t: 'fig.add',
+          fig: {
+            id,
+            label: defaultNames[shape] || '피규어',
+            shape,
+            color: '#3B82F6',
+            size: 'M',
+            x: 500,
+            y: 430,
+            angle: 0,
+            zone: 'table',
+            locked: false,
+            perspectiveNote: '',
+            tags: [],
+            sentences: [],
+            released: false,
+            rev: 1
+          }
+        });
+        this.state.setSelectedFigure(id);
+      });
+    });
+
+    // Add Physical Image Skin Figure
+    document.querySelectorAll('.palette-img-item').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const imgSrc = btn.getAttribute('data-img');
+        const label = btn.getAttribute('data-label') || '구슬';
+        const id = `fig-${Date.now()}`;
+
+        this.authority.dispatch({
+          t: 'fig.add',
+          fig: {
+            id,
+            label,
+            shape: 'image_custom',
+            imageSrc: imgSrc,
+            color: '#6366F1',
+            size: 'M',
+            x: 500,
+            y: 430,
+            angle: 0,
+            zone: 'table',
+            locked: false,
+            perspectiveNote: '',
+            tags: [],
+            sentences: [],
+            released: false,
+            rev: 1
+          }
+        });
+        this.state.setSelectedFigure(id);
+      });
+    });
+
+    // Link Tool Toggle
+    const btnToolLink = document.getElementById('btnToolLink');
+    btnToolLink?.addEventListener('click', () => {
+      if (this.state.ui.activeTool === 'link') {
+        this.state.ui.activeTool = 'select';
+        btnToolLink.className = 'w-full py-1.5 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl flex items-center justify-center space-x-1.5 transition';
+      } else {
+        this.state.ui.activeTool = 'link';
+        btnToolLink.className = 'w-full py-1.5 px-3 bg-blue-600 text-white font-bold text-xs rounded-xl flex items-center justify-center space-x-1.5 transition shadow-sm';
+      }
+    });
+
+    // Snap to grid checkbox
+    const cbSnapGrid = document.getElementById('cbSnapGrid');
+    cbSnapGrid?.addEventListener('change', () => {
+      if (this.board) this.board.snapToGrid = cbSnapGrid.checked;
+    });
+  }
+
+  bindInspectorEvents() {
+    const emptyState = document.getElementById('inspectorEmptyState');
+    const activeState = document.getElementById('inspectorActiveState');
+    const propId = document.getElementById('inspectorFigId');
+    const propLabel = document.getElementById('propLabel');
+    const propAngleRange = document.getElementById('propAngleRange');
+    const propAngleVal = document.getElementById('propAngleVal');
+    const propPerspectiveNote = document.getElementById('propPerspectiveNote');
+    const colorContainer = document.getElementById('colorPaletteContainer');
+    const tagsContainer = document.getElementById('tagsListContainer');
+    const sentencesContainer = document.getElementById('sentencesContainer');
+    const btnToggleZone = document.getElementById('btnToggleZone');
+    const btnDeleteFig = document.getElementById('btnDeleteFig');
+
+    // Colors
+    const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#475569'];
+    colorContainer.innerHTML = colors.map(c => `
+      <button class="w-6 h-6 rounded-full border-2 border-white shadow-2xs hover:scale-110 transition color-chip" data-color="${c}" style="background-color: ${c}"></button>
+    `).join('');
+
+    const updateInspector = () => {
+      const fig = this.state.getSelectedFigure();
+      if (!fig) {
+        emptyState.classList.remove('hidden');
+        activeState.classList.add('hidden');
+        propId.textContent = '선택 없음';
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+      activeState.classList.remove('hidden');
+      propId.textContent = `#${fig.id}`;
+      propLabel.value = fig.label || '';
+      propAngleRange.value = fig.angle || 0;
+      propAngleVal.textContent = `${fig.angle || 0}°`;
+      propPerspectiveNote.value = fig.perspectiveNote || '';
+      btnToggleZone.textContent = fig.zone === 'table' ? '보류 존으로 내리기' : '테이블로 올리기';
+
+      // Update Size Buttons
+      document.querySelectorAll('.prop-size-btn').forEach(b => {
+        if (b.getAttribute('data-size') === fig.size) {
+          b.className = 'prop-size-btn flex-1 py-1 rounded-lg border border-blue-500 bg-blue-50 text-blue-700 font-bold';
+        } else {
+          b.className = 'prop-size-btn flex-1 py-1 rounded-lg border border-slate-200 text-slate-700 font-bold';
+        }
+      });
+
+      // Update Tags
+      tagsContainer.innerHTML = (fig.tags || []).map((t, idx) => `
+        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+          ${t}
+          <button class="ml-1 text-slate-400 hover:text-rose-500" data-remove-tag="${idx}">&times;</button>
+        </span>
+      `).join('');
+
+      // Update Sentences
+      sentencesContainer.innerHTML = (fig.sentences || []).map((s, idx) => `
+        <div class="p-2 bg-blue-50/50 border border-blue-100 rounded-lg text-slate-800 text-[11px] flex items-center justify-between">
+          <span>"${s.text}"</span>
+          <button class="text-slate-400 hover:text-rose-500 font-bold" data-remove-sentence="${idx}">&times;</button>
+        </div>
+      `).join('');
+    };
+
+    // Label Change
+    propLabel?.addEventListener('input', () => {
+      const fig = this.state.getSelectedFigure();
+      if (fig) {
+        this.authority.dispatch({
+          t: 'fig.patch',
+          id: fig.id,
+          patch: { label: propLabel.value }
+        });
+      }
+    });
+
+    // Angle Range
+    propAngleRange?.addEventListener('input', () => {
+      const fig = this.state.getSelectedFigure();
+      if (fig) {
+        const val = parseInt(propAngleRange.value, 10);
+        propAngleVal.textContent = `${val}°`;
+        this.authority.dispatch({
+          t: 'fig.move',
+          id: fig.id,
+          x: fig.x,
+          y: fig.y,
+          angle: val
+        });
+      }
+    });
+
+    // Size
+    document.querySelectorAll('.prop-size-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const fig = this.state.getSelectedFigure();
+        if (fig) {
+          this.authority.dispatch({
+            t: 'fig.patch',
+            id: fig.id,
+            patch: { size: btn.getAttribute('data-size') }
+          });
+        }
+      });
+    });
+
+    // Color Chip Click
+    colorContainer.addEventListener('click', (e) => {
+      const chip = e.target.closest('.color-chip');
+      if (chip) {
+        const fig = this.state.getSelectedFigure();
+        if (fig) {
+          this.authority.dispatch({
+            t: 'fig.patch',
+            id: fig.id,
+            patch: { color: chip.getAttribute('data-color') }
+          });
+        }
+      }
+    });
+
+    // Perspective Note Change
+    propPerspectiveNote?.addEventListener('change', () => {
+      const fig = this.state.getSelectedFigure();
+      if (fig) {
+        this.authority.dispatch({
+          t: 'fig.patch',
+          id: fig.id,
+          patch: { perspectiveNote: propPerspectiveNote.value }
+        });
+      }
+    });
+
+    // Add Tag
+    document.getElementById('btnAddTag')?.addEventListener('click', () => {
+      const input = document.getElementById('newTagInput');
+      const val = input.value.trim();
+      const fig = this.state.getSelectedFigure();
+      if (val && fig) {
+        const tags = [...(fig.tags || []), val];
+        this.authority.dispatch({
+          t: 'fig.patch',
+          id: fig.id,
+          patch: { tags }
+        });
+        input.value = '';
+      }
+    });
+
+    // Remove Tag delegation
+    tagsContainer.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-remove-tag]');
+      if (btn) {
+        const idx = parseInt(btn.getAttribute('data-remove-tag'), 10);
+        const fig = this.state.getSelectedFigure();
+        if (fig && fig.tags) {
+          const tags = fig.tags.filter((_, i) => i !== idx);
+          this.authority.dispatch({
+            t: 'fig.patch',
+            id: fig.id,
+            patch: { tags }
+          });
+        }
+      }
+    });
+
+    // Add Sentence
+    document.getElementById('btnAddSentence')?.addEventListener('click', () => {
+      const input = document.getElementById('newSentenceInput');
+      const val = input.value.trim();
+      const fig = this.state.getSelectedFigure();
+      if (val && fig) {
+        const sentences = [...(fig.sentences || []), { id: `sent-${Date.now()}`, text: val, by: this.role }];
+        this.authority.dispatch({
+          t: 'fig.patch',
+          id: fig.id,
+          patch: { sentences }
+        });
+        input.value = '';
+      }
+    });
+
+    // Remove Sentence delegation
+    sentencesContainer.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-remove-sentence]');
+      if (btn) {
+        const idx = parseInt(btn.getAttribute('data-remove-sentence'), 10);
+        const fig = this.state.getSelectedFigure();
+        if (fig && fig.sentences) {
+          const sentences = fig.sentences.filter((_, i) => i !== idx);
+          this.authority.dispatch({
+            t: 'fig.patch',
+            id: fig.id,
+            patch: { sentences }
+          });
+        }
+      }
+    });
+
+    // Toggle Zone (Table <-> Waiting)
+    btnToggleZone?.addEventListener('click', () => {
+      const fig = this.state.getSelectedFigure();
+      if (fig) {
+        const newZone = fig.zone === 'table' ? 'waiting' : 'table';
+        const newY = newZone === 'waiting' ? 880 : 430;
+        this.authority.dispatch({
+          t: 'fig.move',
+          id: fig.id,
+          x: fig.x,
+          y: newY,
+          angle: fig.angle,
+          zone: newZone
+        });
+      }
+    });
+
+    // Delete Figure
+    btnDeleteFig?.addEventListener('click', () => {
+      const fig = this.state.getSelectedFigure();
+      if (fig && confirm(`'${fig.label}' 피규어를 보드에서 삭제하시겠습니까?`)) {
+        this.authority.dispatch({
+          t: 'fig.remove',
+          id: fig.id
+        });
+      }
+    });
+
+    // Subscribe to state changes for inspector
+    this.state.subscribe(() => {
+      updateInspector();
+    });
+  }
+
+  bindTimelineEvents() {
+    const strip = document.getElementById('snapshotStrip');
+    const btnTake = document.getElementById('btnTakeSnapshot');
+
+    const updateTimeline = () => {
+      const snaps = this.state.session.snapshots || [];
+      if (snaps.length === 0) {
+        strip.innerHTML = `<span class="text-xs text-slate-400 italic">저장된 스냅샷이 없습니다. 중요한 순간에 스냅샷을 남겨보세요.</span>`;
+        return;
+      }
+
+      strip.innerHTML = snaps.map((s, idx) => `
+        <div class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-xl cursor-pointer shrink-0 transition flex items-center space-x-2" data-snapshot-idx="${idx}">
+          <div class="w-2 h-2 rounded-full bg-blue-500"></div>
+          <div>
+            <span class="font-bold text-xs text-slate-800 block">${s.name}</span>
+            <span class="font-mono text-[9px] text-slate-400">${s.at.slice(11, 19)}</span>
+          </div>
+        </div>
+      `).join('');
+    };
+
+    btnTake?.addEventListener('click', () => {
+      const defaultName = `스냅샷 ${this.state.session.snapshots.length + 1}`;
+      const name = prompt('스냅샷 이름을 입력하세요:', defaultName);
+      if (name) {
+        this.authority.dispatch({
+          t: 'snap.add',
+          snap: {
+            id: `snap-${Date.now()}`,
+            name,
+            at: new Date().toISOString(),
+            stage: this.state.session.stage,
+            figures: JSON.parse(JSON.stringify(this.state.session.figures)),
+            links: JSON.parse(JSON.stringify(this.state.session.links))
+          }
+        });
+      }
+    });
+
+    strip.addEventListener('click', (e) => {
+      const item = e.target.closest('[data-snapshot-idx]');
+      if (item) {
+        const idx = parseInt(item.getAttribute('data-snapshot-idx'), 10);
+        const snap = this.state.session.snapshots[idx];
+        if (snap && confirm(`[${snap.name}] 스냅샷 상태로 보드를 되돌리시겠습니까?`)) {
+          this.authority.dispatch({
+            t: 'session.patch',
+            patch: {
+              figures: JSON.parse(JSON.stringify(snap.figures)),
+              links: JSON.parse(JSON.stringify(snap.links))
+            }
+          });
+        }
+      }
+    });
+
+    this.state.subscribe((session, ui, changeType) => {
+      if (changeType === 'snapshots') {
+        updateTimeline();
+      }
+    });
+  }
+}
+
+// Bootstrap application on DOMContentLoaded
+window.addEventListener('DOMContentLoaded', () => {
+  const app = new App();
+  app.init();
+});
+
+  </script>
+</body>
+</html>
