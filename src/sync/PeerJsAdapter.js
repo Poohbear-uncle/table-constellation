@@ -42,6 +42,10 @@ export class PeerJsAdapter extends SyncAdapter {
           config: {
             iceServers: [
               { urls: 'stun:stun.l.google.com:19302' },
+              { urls: 'stun:stun1.l.google.com:19302' },
+              { urls: 'stun:stun2.l.google.com:19302' },
+              { urls: 'stun:stun3.l.google.com:19302' },
+              { urls: 'stun:stun.services.mozilla.com' },
               { urls: 'stun:global.stun.twilio.com:3478' }
             ]
           }
@@ -93,12 +97,15 @@ export class PeerJsAdapter extends SyncAdapter {
 
   setupHostListeners() {
     this.peer.on('connection', (incomingConn) => {
-      // Rule A4: Max 2 participants (1 coach, 1 client)
-      if (this.conn && this.conn.open) {
-        console.warn('[PeerJS] Extra connection rejected. Max 2 participants allowed.');
-        incomingConn.send({ type: 'error', message: '방 인원이 초과되었습니다 (최대 2인).' });
-        setTimeout(() => incomingConn.close(), 500);
-        return;
+      console.log('[PeerJS] Incoming connection from client:', incomingConn.peer);
+
+      // In 1:1 constellation, if client reconnects, close prior stale connection and accept new one
+      if (this.conn) {
+        console.log('[PeerJS] Closing existing connection to accept reconnected peer');
+        try {
+          this.conn.close();
+        } catch (e) {}
+        this.conn = null;
       }
 
       this.conn = incomingConn;
@@ -186,6 +193,12 @@ export class PeerJsAdapter extends SyncAdapter {
   startHeartbeat() {
     this.stopHeartbeat();
     this.heartbeatTimer = setInterval(() => {
+      if (this.conn && this.conn.open) {
+        this.conn.send({ type: 'ping' });
+      }
+    }, 8000); // 8-second heartbeat
+    return;
+    this.dummy = setInterval(() => {
       if (this.conn && this.conn.open) {
         this.conn.send({ type: 'ping' });
       }
