@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>1:1 테이블 컨스텔레이션 사용자 & 코치 퍼실리테이션 종합 매뉴얼</title>
+  
+  <!-- Pretendard Font -->
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'Roboto', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Pretendard', sans-serif;
+      scroll-behavior: smooth;
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #F1F5F9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94A3B8;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased selection:bg-blue-100 selection:text-blue-900">
+
+  <!-- ================= TOP NAV BAR ================= -->
+  <header class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-2xs">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-2.5">
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-xs">
+          TC
+        </div>
+        <div>
+          <h1 class="font-bold text-sm sm:text-base text-slate-900 leading-tight">1:1 테이블 컨스텔레이션 공식 가이드북</h1>
+          <p class="text-[10px] sm:text-xs text-slate-500">Social Constructionism & Systemic Constellation Manual</p>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-2">
+        <a href="./index.html" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center space-x-1">
+          <span>✨ 앱으로 돌아가기</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= HERO INTRO ================= -->
+  <section class="bg-gradient-to-b from-blue-50/60 to-transparent border-b border-slate-100 py-10 px-4">
+    <div class="max-w-4xl mx-auto text-center space-y-3">
+      <div class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-blue-100/80 text-blue-800 text-xs font-semibold mb-1">
+        <span>📖 사용자 & 전문 코치 퍼실리테이션 가이드</span>
+      </div>
+      <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight leading-snug">
+        말로는 표현하기 어려운 내면의 관계 구조를<br class="hidden sm:inline" />
+        <span class="text-blue-600">공간의 이미지로 외재화</span>하여 통찰을 여는 여정
+      </h2>
+      <p class="text-xs sm:text-sm text-slate-600 max-w-2xl mx-auto leading-relaxed">
+        이 가이드는 처음 접속하는 고객이 피규어를 다루는 기초 인터페이스부터, 
+        전문 코치가 1:1 세션을 안전하고 체계적으로 퍼실리테이션하는 심층 기법까지 상세하게 설명합니다.
+      </p>
+    </div>
+  </section>
+
+  <!-- ================= MAIN LAYOUT WITH TOC ================= -->
+  <div class="max-w-6xl mx-auto px-4 py-8 flex flex-col lg:flex-row gap-8">
+    
+    <!-- STICKY TABLE OF CONTENTS (Desktop) -->
+    <aside class="hidden lg:block w-64 shrink-0">
+      <div class="sticky top-20 bg-white rounded-2xl border border-slate-200 p-4 shadow-2xs space-y-2 text-xs font-medium text-slate-600">
+        <div class="font-bold text-slate-900 pb-2 border-b border-slate-100 flex items-center justify-between">
+          <span>목차 (Contents)</span>
+          <span class="text-[10px] text-blue-600 font-bold">총 7부</span>
+        </div>
+        <nav class="space-y-1">
+          <a href="#sec1" class="block py-1 px-2 rounded-lg hover:bg-slate-100 hover:text-blue-600 transition">1. 철학과 핵심 원리</a>
+          <a href="#sec2" class="block py-1 px-2 rounded-lg hover:bg-slate-100 hover:text-blue-600 transition">2. 화면 구성 & 조작 가이드</a>
+          <a href="#sec3" class="block py-1 px-2 rounded-lg hover:bg-slate-100 hover:text-blue-600 transition">3. 텍스트 입력과 기록의 의미</a>
+          <a href="#sec4" class="block py-1 px-2 rounded-lg hover:bg-slate-100 hover:text-blue-600 transition">4. 스냅샷과 리포트의 가치</a>
+          <a href="#sec5" class="block py-1 px-2 rounded-lg bg-indigo-50/70 text-indigo-700 font-bold hover:bg-indigo-100 transition">5. [코치 필독] 가이드 패널 & 퍼실리테이션</a>
+          <a href="#sec6" class="block py-1 px-2 rounded-lg hover:bg-slate-100 hover:text-blue-600 transition">6. 안전 윤리 & 역할 해제</a>
+          <a href="#sec7" class="block py-1 px-2 rounded-lg hover:bg-slate-100 hover:text-blue-600 transition">7. 모바일 사용 & FAQ</a>
+        </nav>
+      </div>
+    </aside>
+
+    <!-- MAIN ARTICLE BODY -->
+    <main class="flex-1 space-y-12 max-w-3xl">
+
+      <!-- ================= SECTION 1 ================= -->
+      <section id="sec1" class="scroll-mt-24 space-y-4">
+        <div class="flex items-center space-x-2 pb-2 border-b border-slate-200">
+          <span class="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-xs">1</span>
+          <h3 class="text-lg sm:text-xl font-bold text-slate-900">테이블 컨스텔레이션의 철학과 핵심 원리</h3>
+        </div>
+
+        <p class="text-xs sm:text-sm text-slate-700 leading-relaxed">
+          <strong>컨스텔레이션(Constellation, 독일어 Aufstellung)</strong>은 어떤 사람이 고민하는 상황 속의 요소들(사람, 역할, 감정, 목표, 장애물 등)을 
+          테이블 위의 공간에 배치하고, 그 배치가 드러내는 <strong>관계의 구조와 시선의 흐름</strong>을 관찰하면서 변화의 실마리를 찾는 체계적(Systemic) 방법론입니다.
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+          <div class="p-3.5 bg-blue-50/60 border border-blue-200 rounded-xl space-y-1.5">
+            <h4 class="font-bold text-blue-900 flex items-center space-x-1">
+              <span>💡 사회구성주의적 외재화 (핵심 철학)</span>
+            </h4>
+            <p class="text-slate-600 leading-relaxed">
+              고객은 머릿속에 엉켜 있던 암묵적 관계 이미지를 테이블 위에 피규어로 <strong>외재화(Externalization)</strong>함으로써 문제와 자신 사이에 건강한 <strong>인지적 거리두기</strong>를 형성합니다.
+            </p>
+          </div>
+          <div class="p-3.5 bg-indigo-50/60 border border-indigo-200 rounded-xl space-y-1.5">
+            <h4 class="font-bold text-indigo-900 flex items-center space-x-1">
+              <span>🔭 현상학적 태도 (비단정 원칙)</span>
+            </h4>
+            <p class="text-slate-600 leading-relaxed">
+              코치는 “이 배치는 ~를 뜻합니다”라고 단정하지 않습니다. 눈앞에 나타난 공간 현상(거리, 시선, 빈자리, 무게감)을 있는 그대로 기술하고 질문합니다.
+            </p>
+          </div>
+        </div>
+
+        <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 leading-relaxed">
+          <strong>👑 고객 주도권의 절대 원칙:</strong> 피규어를 고르고, 배치하고, 회전하고, 이동시키는 모든 권한은 전적으로 <strong>고객에게 100%</strong> 있습니다. 코치는 조언자나 판사가 아니라 고객의 관점 탐색을 돕는 '질문하는 촉진자'입니다.
+        </div>
+      </section>
+
+      <!-- ================= SECTION 2 ================= -->
+      <section id="sec2" class="scroll-mt-24 space-y-4">
+        <div class="flex items-center space-x-2 pb-2 border-b border-slate-200">
+          <span class="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-xs">2</span>
+          <h3 class="text-lg sm:text-xl font-bold text-slate-900">화면 구성 및 기본 인터랙션 조작법</h3>
+        </div>
+
+        <div class="space-y-4 text-xs sm:text-sm text-slate-700">
+          <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-2xs space-y-3">
+            <h4 class="font-bold text-sm text-slate-900 text-blue-600">① 피규어 팔레트 (좌측 사이드바 / 모바일 서랍)</h4>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              테이블에 올릴 구성 요소를 선택하는 공간입니다. 두 가지 탭을 지원합니다:
+            </p>
+            <ul class="list-disc list-inside space-y-1 text-xs text-slate-600 ml-1">
+              <li><strong>추상 피규어 (권장 기본값):</strong> 사람형, 원형, 사각형, 별(목표), 다이아몬드(자원), 관찰자 눈 심볼. 외모·성별·나이에 대한 선입견 없이 자유롭게 의미를 투사할 수 있습니다.</li>
+              <li><strong>구슬·크리스탈 스킨:</strong> 실제 오프라인 원목 보드에서 사용하는 3D 원목 구슬(`나(Me)` 전용 구슬, 형형색색 구슬 1~3, 레드 크리스탈, 블루 스피어). 촉각적이고 현실감 있는 물리적 도구의 감성을 선호할 때 사용합니다.</li>
+            </ul>
+          </div>
+
+          <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-2xs space-y-3">
+            <h4 class="font-bold text-sm text-slate-900 text-blue-600">② 테이블 캔버스 & 360° 시선(Gaze) 회전 조작법</h4>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              중앙 캔버스는 무한 패닝과 줌이 가능한 2D 작업 공간입니다. 피규어를 배치하고 다루는 핵심 요령:
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+              <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-200">
+                <span class="font-bold text-slate-900 block mb-1">🖐️ 드래그 이동</span>
+                <span class="text-slate-600">피규어를 마우스나 손가락으로 누른 채 원하는 곳으로 옮깁니다. (상대방 화면에 실시간 동기화)</span>
+              </div>
+              <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-200">
+                <span class="font-bold text-slate-900 block mb-1">⟳ 시선 회전 핸들</span>
+                <span class="text-slate-600">피규어를 클릭하면 머리 쪽에 나타나는 <strong>파란색 노브(동그라미)</strong>를 드래그하여 시선 방향을 360° 회전합니다.</span>
+              </div>
+              <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-200">
+                <span class="font-bold text-slate-900 block mb-1">⌨️ 키보드 Q / E 단축키</span>
+                <span class="text-slate-600">피규어를 선택한 상태에서 <strong>`Q`</strong> 키는 반시계, <strong>`E`</strong> 키는 시계방향으로 15°씩 미세 회전합니다.</span>
+              </div>
+              <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-200">
+                <span class="font-bold text-slate-900 block mb-1">🔍 줌 & 화면 이동</span>
+                <span class="text-slate-600">마우스 휠로 확대/축소하고, `Alt + 드래그` 또는 빈 공간을 드래그하여 테이블 전체를 이동합니다.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-2xs space-y-2">
+            <h4 class="font-bold text-sm text-slate-900 text-blue-600">③ 하단 점선 영역: '보류 존(Waiting Zone)'의 심리적 의미</h4>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              테이블 아래쪽에는 <code>📥 보류 존 (테이블 밖 대기 영역 / 내려놓은 짐)</code>이 있습니다.<br/>
+              컨스텔레이션에서 보류 존은 단순한 대기실이 아닙니다. 
+              <strong>"지금 당장 내 힘으로 해결할 수 없는 문제", "타인의 몫인데 내가 짊어지고 있던 짐", "아직 다룰 준비가 되지 않은 불안"</strong>을 
+              테이블 중심에서 잠시 내려놓음으로써 <strong>고객의 마음에 즉각적인 여백과 가벼움</strong>을 시험해보는 강력한 개입 공간입니다.
+            </p>
+          </div>
+
+          <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-2xs space-y-2">
+            <h4 class="font-bold text-sm text-slate-900 text-blue-600">④ 관계선 잇기 도구 및 원클릭 '×' 삭제</h4>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              좌측 팔레트의 <strong>`↗️ 두 피규어 관계선 잇기`</strong> 버튼을 누른 후, 피규어 A를 클릭하고 피규어 B를 클릭하면 
+              두 요소 사이에 화살표 관계선이 연결되며 중심 간 거리가 <code>[가까움]</code>, <code>[중간]</code>, <code>[멂]</code> 뱃지로 측정됩니다.<br/>
+              관계선을 지우고 싶을 때는 뱃지 우측의 <strong>빨간색 원형 `×` 버튼을 클릭</strong>하면 선만 즉시 깔끔하게 삭제됩니다.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= SECTION 3 ================= -->
+      <section id="sec3" class="scroll-mt-24 space-y-4">
+        <div class="flex items-center space-x-2 pb-2 border-b border-slate-200">
+          <span class="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-xs">3</span>
+          <h3 class="text-lg sm:text-xl font-bold text-slate-900">텍스트 입력(글쓰기)의 심층적 의미와 활용법</h3>
+        </div>
+
+        <p class="text-xs sm:text-sm text-slate-700 leading-relaxed">
+          이 시스템 곳곳에 배치된 텍스트 입력창은 단순한 메모장이 아닙니다. 
+          언어학적·구성주의적 코칭에서 <strong>내면의 무의식을 의식화하고 새 서사를 직조하는 핵심 도구</strong>입니다.
+        </p>
+
+        <div class="space-y-3 text-xs">
+          <!-- Item 1 -->
+          <div class="p-3 bg-white border border-slate-200 rounded-xl space-y-1">
+            <span class="font-bold text-slate-900 text-xs block text-indigo-700">🎯 상단 코칭 주제 입력란 (Topic)</span>
+            <p class="text-slate-600 leading-relaxed">
+              긴 사연을 장황하게 늘어놓는 대신, <strong>"오늘 작업이 끝났을 때 무엇이 달라져 있으면 좋겠습니까?"</strong>에 대한 답을 한 문장으로 압축합니다. 
+              코치와 고객의 시선을 단 하나의 핵심 탐색 목표에 정렬시킵니다.
+            </p>
+          </div>
+
+          <!-- Item 2 -->
+          <div class="p-3 bg-white border border-slate-200 rounded-xl space-y-1">
+            <span class="font-bold text-slate-900 text-xs block text-indigo-700">🏷️ 피규어 라벨 (이름 짓기)</span>
+            <p class="text-slate-600 leading-relaxed">
+              모호한 불안이나 갈등에 '나', '팀장님', '완벽주의', '숨은 용기' 등의 이름을 부여(Naming)하는 순간, 
+              문제는 나 자신(Self)과 분리되어 테이블 위에서 다룰 수 있는 객체로 탈바꿈합니다.
+            </p>
+          </div>
+
+          <!-- Item 3 -->
+          <div class="p-3.5 bg-blue-50/70 border border-blue-200 rounded-xl space-y-1.5">
+            <span class="font-bold text-blue-900 text-xs block">👁️ 관점 메모 (Perspective Note) — 가장 중요한 통찰 도구</span>
+            <p class="text-slate-700 leading-relaxed">
+              피규어를 선택하고 <strong>"이 피규어의 자리에 서면 세상이 어떻게 보이고 무엇이 필요한가?"</strong>를 적습니다.<br/>
+              고객은 자기 자리에서 벗어나 상대방(상사, 배우자, 혹은 내 안의 지친 자아)의 위치로 관점을 이동(Perceptual Positioning)하여, 
+              평소에는 보지 못했던 상대방의 시야와 결핍, 두려움을 생생하게 체험하게 됩니다.
+            </p>
+          </div>
+
+          <!-- Item 4 -->
+          <div class="p-3 bg-white border border-slate-200 rounded-xl space-y-1">
+            <span class="font-bold text-slate-900 text-xs block text-indigo-700">🧘 신체감각 / 감정 태그 (Felt Sense)</span>
+            <p class="text-slate-600 leading-relaxed">
+              피규어 위치에 섰을 때 머리로 생각하는 감정이 아니라, <strong>가슴의 답답함, 어깨의 무거움, 호흡의 편안함, 긴장감</strong> 등 몸의 즉각적인 반응(Somatic Response)을 태그로 남깁니다.
+            </p>
+          </div>
+
+          <!-- Item 5 -->
+          <div class="p-3 bg-white border border-slate-200 rounded-xl space-y-1">
+            <span class="font-bold text-slate-900 text-xs block text-indigo-700">💬 해결 문장 (Resolution Sentences)</span>
+            <p class="text-slate-600 leading-relaxed">
+              특정 피규어를 바라보며 소리 내어 말해 보는 담백한 확인의 문장입니다. (예: <em>"나는 당신을 봅니다", "이것은 내 몫이고 저것은 당신 몫입니다", "이제 내 자리에 섭니다"</em>). 
+              묵은 감정을 흘려보내고 관계의 온전한 경계를 짓는 역할을 합니다.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= SECTION 4 ================= -->
+      <section id="sec4" class="scroll-mt-24 space-y-4">
+        <div class="flex items-center space-x-2 pb-2 border-b border-slate-200">
+          <span class="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-xs">4</span>
+          <h3 class="text-lg sm:text-xl font-bold text-slate-900">스냅샷과 세션 리포트의 가치</h3>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+          <div class="bg-white border border-slate-200 rounded-2xl p-4 space-y-2">
+            <h4 class="font-bold text-slate-900 text-blue-700 flex items-center space-x-1">
+              <span>📸 스냅샷 타임라인 (A/B 변화 비교)</span>
+            </h4>
+            <p class="text-slate-600 leading-relaxed">
+              세션 중 중요한 변곡점마다 하단의 <strong>`[+ 현재 배치 저장]`</strong>을 누릅니다.<br/>
+              - <strong>스냅샷 1:</strong> 무의식적으로 놓았던 첫 배치 (현재의 고착 상태)<br/>
+              - <strong>스냅샷 2:</strong> 자원을 추가하거나 짐을 치워본 개입 배치<br/>
+              - <strong>스냅샷 3:</strong> 모든 요소가 편안한 자리를 찾은 최종 해결 이미지<br/>
+              타임라인 카드를 클릭하면 언제든 해당 순간의 배치로 되돌아가 비교할 수 있습니다.
+            </p>
+          </div>
+
+          <div class="bg-white border border-slate-200 rounded-2xl p-4 space-y-2">
+            <h4 class="font-bold text-slate-900 text-emerald-700 flex items-center space-x-1">
+              <span>📝 세션 리포트 (Markdown & PNG)</span>
+            </h4>
+            <p class="text-slate-600 leading-relaxed">
+              본 시스템은 개인정보 보호(Privacy by Design) 원칙에 따라 <strong>서버에 어떠한 세션 데이터도 남기지 않고 즉시 소멸</strong>합니다.<br/>
+              따라서 상단의 <strong>`[📷 PNG]`</strong> 또는 <strong>`[📝 리포트]`</strong>를 누르면 오늘 나눈 주제, 요소 좌표, 관점 메모, 시도된 문장, 실천 과제가 정형화된 마크다운 문서로 즉시 다운로드되어 <strong>고객이 온전한 소유권</strong>을 가지게 됩니다.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= SECTION 5 (COACH CRITICAL) ================= -->
+      <section id="sec5" class="scroll-mt-24 space-y-4 bg-gradient-to-br from-indigo-50/80 via-white to-blue-50/50 p-6 rounded-3xl border-2 border-indigo-200 shadow-sm">
+        <div class="flex items-center space-x-2 pb-2 border-b border-indigo-200">
+          <span class="w-8 h-8 rounded-xl bg-indigo-700 text-white flex items-center justify-center font-bold text-sm shadow-xs">👑</span>
+          <div>
+            <h3 class="text-lg sm:text-xl font-extrabold text-indigo-950">[코치 필독] 코치 전용 가이드 패널 & 퍼실리테이션 마스터 가이드</h3>
+            <p class="text-xs text-indigo-600 font-semibold">처음 접하는 코치도 바로 전문적인 세션을 이끌 수 있는 실무 지침서</p>
+          </div>
+        </div>
+
+        <div class="p-3 bg-white/90 rounded-xl border border-indigo-100 text-xs text-indigo-900 leading-relaxed shadow-2xs">
+          <strong>🔒 고객 화면 DOM 원천 격리:</strong> 이 팝업 패널은 <code>role === 'coach'</code>일 때만 브라우저에 렌더링되며, <strong>고객 화면에는 단 1픽셀도 나타나지 않습니다.</strong> 코치는 안심하고 질문과 개입 지침을 커닝 페이퍼처럼 실시간으로 참조할 수 있습니다.
+        </div>
+
+        <!-- 8 Stages Table -->
+        <div class="space-y-3">
+          <h4 class="font-bold text-xs text-indigo-900 uppercase tracking-wider">1. 표준 90분 세션 운용 8단계 구조</h4>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border border-slate-200 rounded-xl overflow-hidden bg-white">
+              <thead class="bg-indigo-900 text-white">
+                <tr>
+                  <th class="p-2.5 font-bold">단계</th>
+                  <th class="p-2.5 font-bold">권장 시간</th>
+                  <th class="p-2.5 font-bold">코치의 핵심 행동 및 질문 요령</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 text-slate-700">
+                <tr class="hover:bg-slate-50">
+                  <td class="p-2 font-bold text-indigo-700">0. 동의·안전</td>
+                  <td class="p-2 font-mono">5분</td>
+                  <td class="p-2">심리치료가 아닌 코칭 도구임을 고지하고 언제든 멈출 수 있는 중단 권리를 보장합니다.</td>
+                </tr>
+                <tr class="hover:bg-slate-50">
+                  <td class="p-2 font-bold text-indigo-700">1. 주제 정리</td>
+                  <td class="p-2 font-mono">10분</td>
+                  <td class="p-2">"오늘 이 작업이 끝났을 때 무엇이 달라져 있으면 좋겠습니까?" 한 문장으로 요약합니다.</td>
+                </tr>
+                <tr class="hover:bg-slate-50">
+                  <td class="p-2 font-bold text-indigo-700">2. 요소 선정</td>
+                  <td class="p-2 font-mono">10분</td>
+                  <td class="p-2">상황과 관련된 3~7개 핵심 요소(사람, 감정, 가치, 장애물)를 고객이 정하고 피규어를 고릅니다.</td>
+                </tr>
+                <tr class="hover:bg-slate-50">
+                  <td class="p-2 font-bold text-indigo-700">3. 첫 배치</td>
+                  <td class="p-2 font-mono">10분</td>
+                  <td class="p-2"><strong>코치는 절대 해석하지 않습니다.</strong> 고객이 손이 가는 대로 직관적으로 놓게 합니다.</td>
+                </tr>
+                <tr class="hover:bg-slate-50">
+                  <td class="p-2 font-bold text-indigo-700">4. 현상 관찰</td>
+                  <td class="p-2 font-mono">10분</td>
+                  <td class="p-2">거리, 시선, 군집, 빈자리 등 눈에 보이는 공간 사실만을 질문합니다. ("무엇이 눈에 띕니까?")</td>
+                </tr>
+                <tr class="hover:bg-slate-50">
+                  <td class="p-2 font-bold text-indigo-700">5. 관점 이동</td>
+                  <td class="p-2 font-mono">15분</td>
+                  <td class="p-2">고객이 각 피규어의 위치에 서서 다른 요소들을 바라보게 돕고 관점 메모를 적게 합니다.</td>
+                </tr>
+                <tr class="hover:bg-slate-50">
+                  <td class="p-2 font-bold text-indigo-700">6. 개입·탐색</td>
+                  <td class="p-2 font-mono">20분</td>
+                  <td class="p-2">작은 이동, 시선 돌리기, 자원 추가, 짐 내려놓기, 해결 문장 시도로 편안함을 찾습니다.</td>
+                </tr>
+                <tr class="hover:bg-slate-50">
+                  <td class="p-2 font-bold text-indigo-700">7. 해결 이미지</td>
+                  <td class="p-2 font-mono">5분</td>
+                  <td class="p-2">모든 요소가 '자기 자리에 있다'고 느끼는 최종 배치를 스냅샷으로 저장합니다.</td>
+                </tr>
+                <tr class="hover:bg-slate-50">
+                  <td class="p-2 font-bold text-indigo-700">8. 마무리</td>
+                  <td class="p-2 font-mono">5분</td>
+                  <td class="p-2">역할 해제(De-roling) 마법사 실행, 신체 그라운딩, 내일의 가장 작은 실천 과제 수립.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 3 Lenses of Order -->
+        <div class="space-y-3 pt-2">
+          <h4 class="font-bold text-xs text-indigo-900 uppercase tracking-wider">2. 사랑의 질서(Orders of Love) 3대 관찰 렌즈 다루는 법</h4>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            헬링거의 세 가지 질서는 도덕적 '규범'이나 '진리'가 아닙니다. 코칭에서는 어디까지나 고객의 배치를 새롭게 조망할 수 있게 돕는 <strong>가설적 관찰 렌즈</strong>로만 부드럽게 질문합니다:
+          </p>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+            <div class="p-3 bg-white rounded-xl border border-amber-200">
+              <span class="font-bold text-amber-900 block mb-1">1. 소속 (Belonging)</span>
+              <p class="text-slate-600">"혹시 이 그림에서 자기 자리가 없거나 배제된 존재, 잊힌 감정이 있습니까?"</p>
+            </div>
+            <div class="p-3 bg-white rounded-xl border border-emerald-200">
+              <span class="font-bold text-emerald-900 block mb-1">2. 균형 (Balance)</span>
+              <p class="text-slate-600">"주고받음의 균형이 한쪽으로 지나치게 기울어져 있거나 혼자 짐을 진 곳은 어디입니까?"</p>
+            </div>
+            <div class="p-3 bg-white rounded-xl border border-indigo-200">
+              <span class="font-bold text-indigo-900 block mb-1">3. 순서 (Order)</span>
+              <p class="text-slate-600">"먼저 온 사람의 자리가 존중받고 있나요? 아랫사람이 윗사람의 짐을 대신 지고 있지는 않습니까?"</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 7 Templates -->
+        <div class="space-y-3 pt-2">
+          <h4 class="font-bold text-xs text-indigo-900 uppercase tracking-wider">3. 내장 템플릿 7종 선택 및 진행 요령</h4>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+            <div class="p-2.5 bg-white rounded-lg border border-slate-200">
+              <span class="font-bold text-blue-700">1. 자유 배치 (Free):</span> 고객이 직관적으로 요소를 정의하는 기본형.
+            </div>
+            <div class="p-2.5 bg-white rounded-lg border border-slate-200">
+              <span class="font-bold text-blue-700">2. 목표·자원·장애물:</span> 나와 목표 사이의 거리, 장애물의 무게감, 등 뒤의 지지 자원 배치.
+            </div>
+            <div class="p-2.5 bg-white rounded-lg border border-slate-200">
+              <span class="font-bold text-blue-700">3. 대인 관계 갈등:</span> 나와 상대방 사이에 '관계의 장'과 '서로의 기대'를 제3의 요소로 분리 조망.
+            </div>
+            <div class="p-2.5 bg-white rounded-lg border border-slate-200">
+              <span class="font-bold text-blue-700">4. 팀·조직 역동:</span> 조직의 핵심 목적을 중심에 두고 리더, 팀원, 고객, 외부 압력의 시선 탐색.
+            </div>
+            <div class="p-2.5 bg-white rounded-lg border border-slate-200">
+              <span class="font-bold text-blue-700">5. 의사결정 딜레마:</span> 선택지 A와 선택지 B 앞에 서 보며 각각의 자리에서 느껴지는 신체 감각 비교.
+            </div>
+            <div class="p-2.5 bg-white rounded-lg border border-slate-200">
+              <span class="font-bold text-blue-700">6. 내면의 부분 대화:</span> 완벽주의, 피로, 모험심, 두려움 등 내면의 상충하는 목소리들을 외재화하여 화해.
+            </div>
+            <div class="p-2.5 bg-white rounded-lg border border-indigo-300 col-span-1 sm:col-span-2 bg-indigo-50/40">
+              <span class="font-bold text-indigo-900">7. 테트라레마 (SySt 구조 세우기):</span><br/>
+              고대 인도 논리학 기반으로 이분법적 교착 상태를 푸는 5단계 모델: 
+              <em>① 이것(선택 A) → ② 저것(선택 B) → ③ 둘 다(통합) → ④ 둘 다 아님(제3의 길) → ⑤ 모두를 넘어서는 것</em>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= SECTION 6 ================= -->
+      <section id="sec6" class="scroll-mt-24 space-y-4">
+        <div class="flex items-center space-x-2 pb-2 border-b border-slate-200">
+          <span class="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-xs">6</span>
+          <h3 class="text-lg sm:text-xl font-bold text-slate-900">안전 윤리와 역할 해제(De-roling) 프로토콜</h3>
+        </div>
+
+        <p class="text-xs sm:text-sm text-slate-700 leading-relaxed">
+          컨스텔레이션은 깊은 정서적 투사가 일어날 수 있는 작업이므로, 
+          <strong>심리적 안전지대(Psychological Safety)와 현실 복귀 절차</strong>가 반드시 지켜져야 합니다.
+        </p>
+
+        <div class="space-y-3 text-xs">
+          <div class="p-3.5 bg-rose-50 border border-rose-200 rounded-xl space-y-1 text-rose-950">
+            <span class="font-bold text-xs block text-rose-800">⚠️ 코칭과 의료·심리치료의 명확한 경계</span>
+            <p class="leading-relaxed">
+              급성 트라우마, 자해·자살 사고, 심각한 정신증적 증상이 있는 고객에게는 컨스텔레이션을 진행하지 않으며, 
+              즉시 전문 기관(자살예방상담 <strong>109</strong>, 정신건강위기 <strong>1577-0199</strong>)으로 연계합니다.
+            </p>
+          </div>
+
+          <div class="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl space-y-1 text-emerald-950">
+            <span class="font-bold text-xs block text-emerald-800">🕊️ 역할 해제(De-roling)와 현실 그라운딩 마법사</span>
+            <p class="leading-relaxed">
+              세션이 끝나면 상단의 <strong>`[🕊️ 마무리]`</strong>를 누릅니다. 마법사 안내에 따라:<br/>
+              1. <em>"이것은 소중한 도구였을 뿐, 실제 사람이 아닙니다"</em>라고 확인하며 피규어들을 보류 존으로 퇴장시킵니다.<br/>
+              2. 발바닥이 바닥에 닿는 단단한 감각을 느끼며 세 번 깊은 호흡을 쉽니다.<br/>
+              3. 방 안에서 보이는 물리적 사물 3가지의 이름을 불러 현실의 '지금-여기'로 온전히 복귀합니다.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= SECTION 7 ================= -->
+      <section id="sec7" class="scroll-mt-24 space-y-4">
+        <div class="flex items-center space-x-2 pb-2 border-b border-slate-200">
+          <span class="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-xs">7</span>
+          <h3 class="text-lg sm:text-xl font-bold text-slate-900">모바일 사용 팁 & 자주 묻는 질문 (FAQ)</h3>
+        </div>
+
+        <div class="space-y-3 text-xs">
+          <div class="p-3.5 bg-white border border-slate-200 rounded-xl space-y-1">
+            <span class="font-bold text-slate-900 text-xs block text-blue-700">Q. 스마트폰에서 가장 편하게 사용하는 방법은?</span>
+            <p class="text-slate-600 leading-relaxed">
+              스마트폰을 <strong>가로 모드(Landscape)</strong>로 돌리시면 실제 회의 테이블처럼 넓게 보실 수 있습니다. 
+              상단의 `[🎴 피규어]` 버튼으로 피규어를 꺼내놓고, 피규어를 터치하여 속성을 편집한 뒤, 테이블 빈 공간을 터치하면 서랍이 닫힙니다.
+            </p>
+          </div>
+
+          <div class="p-3.5 bg-white border border-slate-200 rounded-xl space-y-1">
+            <span class="font-bold text-slate-900 text-xs block text-blue-700">Q. 피규어 회전은 스마트폰에서 어떻게 하나요?</span>
+            <p class="text-slate-600 leading-relaxed">
+              피규어를 터치하면 열리는 우측 속성 서랍에서 <strong>`시선 방향 (각도)` 슬라이더</strong>를 손가락으로 밀어서 360도 자유롭게 돌리실 수 있습니다.
+            </p>
+          </div>
+
+          <div class="p-3.5 bg-white border border-slate-200 rounded-xl space-y-1">
+            <span class="font-bold text-slate-900 text-xs block text-blue-700">Q. 두 사람의 연결이 끊어졌을 때는 어떻게 하나요?</span>
+            <p class="text-slate-600 leading-relaxed">
+              화면 상단의 상태 뱃지가 노란색(재연결 중)으로 바뀌면 시스템이 2~3초 내에 자동으로 연결 복구를 시도합니다. 
+              네트워크가 크게 바뀐 경우(Wi-Fi ↔ LTE) 브라우저를 한 번 새로고침(F5)하시면 로컬 저장소에서 직전 배치를 복원하여 즉시 다시 연결됩니다.
+            </p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="bg-white border-t border-slate-200 py-6 px-4 mt-12 text-center text-xs text-slate-500">
+    <div class="max-w-4xl mx-auto space-y-2">
+      <p class="font-bold text-slate-700">1:1 테이블 컨스텔레이션 웹 시스템 (Table Constellation Web App)</p>
+      <p>Social Constructionism & Systemic Constellation Interactive Board</p>
+      <p class="text-[11px] text-slate-400">Copyright &copy; 2026. All rights reserved. Open for coaching & systemic research.</p>
+    </div>
+  </footer>
+
+</body>
+</html>
